@@ -1,6 +1,32 @@
 <html>
+  <head>
+    <title>IAM</title>
+    <script src="https://cdn.jsdelivr.net/npm/@author.io/element-base@1.1.4/dist/author-base.min.js" integrity="sha256-88Leq5wvtM3smxNDd5ep54Itg4sh2nKRHWoOwrYu4hk=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@author.io/element-cycle@1.0.4/dist/author-cycle.min.js" integrity="sha256-w25QeUlPXWYd/Hhv7aLGw8nDd8btynTqZjDju+6EuC0=" crossorigin="anonymous"></script>
+  </head>
   <body>
-    Open the console.
+    <header>
+      <nav>
+        <a>System</a>
+        <a>Roles</a>
+        <a>Groups</a>
+        <a>User</a>
+      </nav>
+    </header>
+    <author-cycle>
+      <section id="system" selected>
+        System
+      </section>
+      <section id="Roles">
+        Roles
+      </section>
+      <section id="Groups">
+        Groups
+      </section>
+      <section id="User">
+        User
+      </section>
+    </author-cycle>
     <script type="module">
       import IAM from '../src/main.js'
 
@@ -10,7 +36,8 @@
       // Multiple resource registration
       IAM.createResource({
         settings: ['view', 'manage', 'admin'],
-        profile: ['view', 'manage', 'admin']
+        profile: ['view', 'manage', 'admin'],
+        'super secret section': ['admin']
       })
 
       // Data
@@ -20,6 +47,10 @@
       // 2. Create authorization roles
       IAM.createRole('admin', {
         'admin portal': ['allow:*']
+      })
+
+      IAM.createRole('superadmin', {
+        'super secret section': ['allow:*']
       })
 
       // Grant resource rights to everyone.
@@ -59,7 +90,8 @@
 
       // -- Groups --
       IAM.createGroup('admin', 'superadmin')
-      IAM.getGroup('admin').addRole('admin').addMember('superadmin')
+      IAM.getGroup('admin').addRole('admin')
+      IAM.getGroup('superadmin').addRole('superadmin').addMember('admin')
       console.table(IAM.grouplist)
       console.log(IAM.groups)
 
@@ -69,6 +101,7 @@
       console.log(user.roles)
       console.table(user.groups)
       console.log(user.authorized('admin portal', 'manage'))
+      console.log(user.authorized('super secret section', 'admin'))
     </script>
   </body>
 </html>

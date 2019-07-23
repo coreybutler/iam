@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css?family=Lato&display=swap');
+
+body {
+  font-family: Lato, Consolas, Arial, sans-serif;
+}
+
+nav a {
+  font-weight: 900;
+  color: navy;
+  opacity: .75;
+}
+
+nav a.selected {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+nav a:not(.selected):hover {
+  cursor: pointer;
+  opacity: .85;
+}

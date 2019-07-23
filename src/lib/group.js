@@ -6,6 +6,7 @@ export default class Group {
   #name = null
   #members = new Set()
   #memberOf = new Set()
+  #subgroups = new Set()
   #roles = new Set()
 
   constructor (name = 'Unknown Group') {
@@ -21,6 +22,7 @@ export default class Group {
         configurable: false,
         value: group => {
           this.#memberOf.add(group)
+          group.addChildGroup(this)
         }
       },
       removeParentGroup: {
@@ -29,6 +31,23 @@ export default class Group {
         configurable: false,
         value: group => {
           this.#memberOf.remove(group)
+          group.removeChildGroup(this)
+        }
+      },
+      addChildGroup: {
+        enumerable: false,
+        writable: false,
+        configurable: false,
+        value: group => {
+          this.#subgroups.add(group.OID)
+        }
+      },
+      removeChildGroup: {
+        enumerable: false,
+        writable: false,
+        configurable: false,
+        value: group => {
+          this.#subgroups.remove(group.OID)
         }
       }
     })
@@ -45,8 +64,10 @@ export default class Group {
   get roles () {
     let roles = new Set([...this.#roles])
 
-    if (this.#memberOf.size > 0) {
-      
+    if (this.#subgroups.size > 0) {
+      this.#subgroups.forEach(subgroup => {
+        roles = new Set([...roles, ...IAM.getGroup(subgroup).roles])
+      })
     }
 
     return Array.from(roles)
