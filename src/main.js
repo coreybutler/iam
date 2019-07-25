@@ -38,7 +38,7 @@ class Manager {
         configurable: false,
         writable: false,
         value: (role, resource = null) => {
-          return resource === null ? this.#roles.get(role) : this.#roles.get(role)[resource]
+          return resource === null ? this.#roles.get(role) : (this.#roles.get(role)[resource] || [])
         }
       }
     })

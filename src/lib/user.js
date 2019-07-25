@@ -226,8 +226,8 @@ export default class User {
    */
   trace (resource, right) {
     // Get relevant roles directly assigned to the user
-    this.#roles.forEach(role => {
-      Array.from(IAM.getRoleRights(role, resource)).forEach(perm => {
+    for (let role of this.#roles) {
+      for (let perm of IAM.getRoleRights(role, resource)) {
         let permission = (new RegExp(`((allow|deny)\\:)?(${right}|\\*)`, 'i')).exec(perm)
 
         if (permission !== null) {
@@ -243,8 +243,8 @@ export default class User {
             }
           }
         }
-      })
-    })
+      }
+    }
 
     // Get roles assigned to the user via a group
     for (let group of this.#memberOf) {
