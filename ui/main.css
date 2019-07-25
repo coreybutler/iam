@@ -4,6 +4,10 @@ body {
   font-family: Lato, Consolas, Arial, sans-serif;
 }
 
+header {
+  display: flex;
+}
+
 nav a {
   font-weight: 900;
   color: navy;

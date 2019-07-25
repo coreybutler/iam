@@ -212,4 +212,60 @@ export default class User {
     Array.from(arguments).forEach(group => IAM.removeUserGroup(this, group))
     return this
   }
+
+  /**
+   * Trace the lineage of a right/permission, back to the source.
+   * This is useful for answering questions like "what group/role
+   * granted or denied a particular permission?"
+   * @param  {string} resource
+   * Resource name.
+   * @param  {string} right
+   * Permission/right.
+   * @return {Object}
+   *
+   */
+  trace (resource, right) {
+    // Get relevant roles directly assigned to the user
+    this.#roles.forEach(role => {
+      Array.from(IAM.getRoleRights(role, resource)).forEach(perm => {
+        let permission = (new RegExp(`((allow|deny)\\:)?(${right}|\\*)`, 'i')).exec(perm)
+
+        if (permission !== null) {
+          if (permission[2] === 'allow') {
+            return {
+              type: 'role',
+              resource,
+              right,
+              group: null,
+              role,
+              allowed: true,
+              lineage: `${role} (role) --> ${right} (permission)`
+            }
+          }
+        }
+      })
+    })
+
+    // Get roles assigned to the user via a group
+    for (let group of this.#memberOf) {
+      console.log('-->', IAM.getGroup(group).trace(resource, right))
+    }
+
+    return null
+  }
+
+  /**
+   * A summary of user data.
+   * @return {object}
+   */
+  get summary () {
+    let data = {
+      name: this.#name,
+      roles: this.roles,
+      rights: this.rights,
+      groups: this.groups
+    }
+
+    return data
+  }
 }

@@ -145,4 +145,61 @@ export default class Group {
     this.#members.forEach(user => user.removeMembership(this.#oid))
     return this
   }
+
+  /**
+   * Trace the lineage of a right/permission, back to the source.
+   * This is useful for answering questions like "what group
+   * granted or denied a particular permission?"
+   * @param  {string} resource
+   * Resource name.
+   * @param  {string} right
+   * Permission/right.
+   * @return {Object}
+   *
+   */
+  trace (resource, right) {
+    let data = {
+      type: 'group',
+      group: this.#name,
+      resource,
+      right,
+      allowed: false,
+      lineage: null
+    }
+
+    // Identify non-nested roles
+    for (let role of this.#roles) {
+      let rights = IAM.getRoleRights(role)
+
+      if (rights[resource]) {
+        for (let perm of rights[resource]) {
+          let permission = (new RegExp(`((allow|deny)\\:)?(${right}|\\*)`, 'i')).exec(perm)
+
+          if (permission !== null) {
+            if (permission[2] === 'allow') {
+              return Object.assign(data, {
+                role,
+                allowed: true,
+                lineage: `${this.#name} (group) --> ${role} (role) --> ${right} (permission)`
+              })
+            } else if (permission[2] === 'deny') {
+              data = Object.assign(data, {
+
+              })
+            } else if (permission[3] === right && !data.hasOwnProperty('role')) {
+              data = Object.assign(data, {
+                role,
+                allowed: true,
+                lineage: `${this.#name} (group) --> ${role} (role) --> ${right} (permission)`
+              })
+            }
+          }
+        }
+      }
+    }
+
+    console.log(this.#subgroups, this.#name)
+
+    return data.lineage !== null ? data : null
+  }
 }

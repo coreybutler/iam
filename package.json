@@ -1,6 +1,6 @@
 {
   "name": "@butlerlogic/iam",
-  "version": "1.0.0-beta1",
+  "version": "1.0.0-beta2",
   "description": "A simple identifaction and authorization management utility.",
   "main": "src/main.js",
   "directories": {

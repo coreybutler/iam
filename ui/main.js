@@ -1,5 +1,18 @@
 import IAM from '../src/main.js'
 
+window.IAM = IAM
+
+// Top Level Navigation
+const nav = document.querySelector('author-cycle')
+Array.from(document.querySelectorAll('header > nav > a')).forEach(navlink => {
+  navlink.addEventListener('click', evt => {
+    evt.target.parentNode.querySelector('.selected').classList.remove('selected')
+    evt.target.classList.add('selected')
+
+    nav.show(document.getElementById(evt.target.getAttribute('target')))
+  })
+})
+
 
 
 // 1. Identify Resources: resource name / actions & features
@@ -69,8 +82,13 @@ console.log(IAM.groups)
 
 user.revoke('admin')
 console.log(user.roles)
-user.join('superadmin')
+user.join('admin')
+// user.join('superadmin')
 console.log(user.roles)
 console.table(user.groups)
 console.log(user.authorized('admin portal', 'manage'))
 console.log(user.authorized('super secret section', 'admin'))
+
+
+console.log(user.summary)
+console.log(user.trace('admin portal', 'manage'))

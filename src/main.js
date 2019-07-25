@@ -31,6 +31,17 @@ class Manager {
 
   constructor () {
     this.createRole('everyone', {})
+
+    Object.defineProperties(this, {
+      getRoleRights: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: (role, resource = null) => {
+          return resource === null ? this.#roles.get(role) : this.#roles.get(role)[resource]
+        }
+      }
+    })
   }
 
   // Private method to keep track of users.
@@ -113,6 +124,14 @@ class Manager {
    */
   get grouplist () {
     return Array.from(this.#groups.keys())
+  }
+
+  get configuration () {
+    return {
+      resources: Object.fromEntries(this.#resources),
+      roles: Object.fromEntries(this.#roles),
+      groups: Object.fromEntries(this.#groups)
+    }
   }
 
   /**
