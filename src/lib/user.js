@@ -21,9 +21,9 @@ export default class User {
       }
 
       return exists
-    }))
+    }).map(name => IAM.getRole(name).OID))
 
-    this.#roles = new Set([...['everyone'], ...roles])
+    this.#roles = new Set([...[IAM.getRole('everyone').OID], ...roles])
 
     Object.defineProperties(this, {
       addMembership: {
@@ -65,53 +65,56 @@ export default class User {
   }
 
   get roles () {
+    return Array.from(this.permissions)
+  }
+
+  get roleNames () {
+    return this.roles.map(role => role.name)
+  }
+
+  get permissions () {
     let roles = new Set([...this.#roles])
 
     this.#memberOf.forEach(group => {
-      roles = new Set([...roles, ...IAM.getGroup(group).roles])
+      roles = new Set([...roles, ...IAM.getGroup(group).permissions])
     })
 
-    return Array.from(roles)
+    return new Set([...Array.from(roles).map(role => IAM.getRole(role))])
   }
 
   get rights () {
-    let iamRoles = IAM.roles
-    let data = {}
+    let roles = new Set([...IAM.roles.values(), ...this.permissions])
+    let data = new Map()
+    let rights = new Map()
 
-    // Combine permissions from all roles
-    Array.from(this.#roles).forEach(role => {
-      Object.keys(iamRoles[role]).forEach(resource => {
-        data[resource] = new Set([...(data[resource] || []), ...iamRoles[role][resource]])
+    for (let role of roles) {
+      role.resources.forEach((acl, resource) => {
+        data.set(resource, new Set())
+        rights.set(resource, new Set([...(rights.get(resource) || []), ...acl]))
       })
-    })
-
-    // Iterate through resources to clear denied rights
-    for (let [resource, rights] of Object.entries(data)) {
-      let allowed = new Set()
-      let denied = new Set()
-
-      rights = new Set(Array.from(rights).map(right => {
-        if (right.indexOf('allow:') >= 0) {
-          allowed.add(right.substring(6).trim())
-        } else if (right.indexOf('deny:') >= 0) {
-          denied.add(right.substring(5).trim())
-        }
-
-        return right.substring(right.indexOf(':') < 0 ? 0 : right.indexOf(':') + 1)
-      }))
-
-      // Loop through all the denied rights and remove them.
-      denied.forEach(right => !allowed.has(right) && rights.delete(right))
-
-      // If the right is "all" (*), replace it with the known resource rights.
-      if (rights.has('*')) {
-        rights = new Set([...IAM.getResourceRights(resource)])
-      }
-
-      data[resource] = Array.from(rights)
     }
 
-    return data
+    for (let [resource, acl] of rights) {
+      for (let right of acl) {
+        let permissions = right.all ? Array.from(IAM.getResource(resource).rights.keys()) : [right.name]
+
+        if (right.allowed) {
+          data.set(resource, new Set([...data.get(resource), ...permissions]))
+        } else {
+          permissions.forEach(permission => data.set(resource, data.get(resource).delete(permission)))
+        }
+
+        if (right.force) {
+          break
+        }
+      }
+    }
+
+    for (let [resource, acl] of data) {
+      data.set(resource, Array.from(acl).sort())
+    }
+
+    return Object.fromEntries(data)
   }
 
   get groups () {
@@ -127,12 +130,18 @@ export default class User {
    * @return {boolean}
    */
   of (role) {
-    if (this.#roles.has(role.trim())) {
+    role = typeof role === 'symbol' ? role : (role instanceof Role ? role.OID : IAM.getRole(role)).OID
+
+    if (typeof role !== 'symbol') {
+      throw new (`Invalid role: "${role.toString()}"`)
+    }
+
+    if (this.#roles.has(role)) {
       return true
     }
 
     if (this.#memberOf.size > 0) {
-      return (new Set([...this.roles])).has(role.trim())
+      return (new Set([...this.permissions])).has(role)
     }
 
     return false
@@ -147,11 +156,13 @@ export default class User {
 
   /**
    * Assign user a new role.
-   * @param  {string} name
+   * @param  {string|IAM.Role} name
    * Name of the role. This can also be a comma separated list (multiargument).
    */
   assign () {
-    Array.from(arguments).forEach(role => this.#roles.add(role.trim()))
+    Array.from(arguments).forEach(role => {
+      this.#roles.add(IAM.getRole(role).OID)
+    })
 
     return this
   }
@@ -163,11 +174,11 @@ export default class User {
    */
   revoke () {
     Array.from(arguments).forEach(role => {
-      if (role.trim().toUpperCase() === 'EVERYONE') {
-        throw new Error('Cannot deny the "${role}" role for users.')
+      if (role.trim().toLowerCase() === 'everyone') {
+        throw new Error('Cannot revoke the "everyone" role.')
       }
 
-      this.#roles.delete(role.trim())
+      this.#roles.delete(IAM.getRole(role.trim()).OID)
     })
 
     return this
@@ -178,7 +189,7 @@ export default class User {
    * @return {[type]} [description]
    */
   clear () {
-    this.#roles = new Set(['everyone'])
+    this.#roles = new Set([...IAM.getRole('everyone').OID])
 
     return this
   }
@@ -225,22 +236,40 @@ export default class User {
    *
    */
   trace (resource, right) {
-    // Get relevant roles directly assigned to the user
-    for (let role of this.#roles) {
-      for (let perm of IAM.getRoleRights(role, resource)) {
-        let permission = (new RegExp(`((allow|deny)\\:)?(${right}|\\*)`, 'i')).exec(perm)
+    let data = {
+      type: 'role',
+      role: null,
+      group: null,
+      resource,
+      right,
+      allowed: false,
+      lineage: null
+    }
 
-        if (permission !== null) {
-          if (permission[2] === 'allow') {
-            return {
-              type: 'role',
-              resource,
-              right,
-              group: null,
+    // Get relevant roles directly assigned to the user
+    for (let role of Array.from(this.#roles).map(role => IAM.getRole(role))) {
+      let permissions = role.rights.get(resource)
+
+      if (permissions) {
+        for (let permission of permissions) {
+          if (permission.forced) {
+            return Object.assign(data,{
               role,
               allowed: true,
-              lineage: `${role} (role) --> ${right} (permission)`
-            }
+              lineage: `${role.name} (role) --> ${RIGHTS} (right)`
+            })
+          } else if (permission.denied) {
+            data = Object.assign(data, {
+              role,
+              allowed: false,
+              lineage: `${role.name} (role) --> ${right} (right)`
+            })
+          } else if (permission.is(right) && !data.hasOwnProperty('role')) {
+            data = Object.assign(data, {
+              role,
+              allowed: true,
+              lineage: `${role.name} (role) --> ${right} (right)`
+            })
           }
         }
       }
@@ -248,10 +277,37 @@ export default class User {
 
     // Get roles assigned to the user via a group
     for (let group of this.#memberOf) {
-      console.log('-->', IAM.getGroup(group).trace(resource, right))
+      let lineage = IAM.getGroup(group).trace(...arguments)
+
+      if (lineage !== null && (!data.hasOwnProperty('role') || lineage.forced || !data.allowed)) {
+        data = data || lineage
+        data.lineage = lineage.lineage
+        data.group = lineage.group
+        data.role = lineage.role
+        data.allowed = lineage.allowed
+
+        if (lineage.forced) {
+          return data
+        }
+      }
     }
 
-    return null
+    return data.lineage !== null ? data : null
+  }
+
+  lineage(resource, right) {
+    let lineage = this.trace(...arguments)
+
+    return lineage.lineage.split(/\s+?\-+\>\s+?/i).map(source => {
+      // Get group
+      if (/\((.+)?group\)/i.test(source)) {
+        return IAM.getGroup(source.replace(/\((.+)?group\)/gi, '').trim())
+      } else if (/\(role\)/i.test(source)) {
+        return IAM.getRole(source.replace(/\(.+\)/gi, '').trim())
+      }
+
+      return source
+    })
   }
 
   /**
@@ -261,7 +317,7 @@ export default class User {
   get summary () {
     let data = {
       name: this.#name,
-      roles: this.roles,
+      roles: Array.from(this.roles).map(role => role.name),
       rights: this.rights,
       groups: this.groups
     }

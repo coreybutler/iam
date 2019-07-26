@@ -13,8 +13,6 @@ Array.from(document.querySelectorAll('header > nav > a')).forEach(navlink => {
   })
 })
 
-
-
 // 1. Identify Resources: resource name / actions & features
 IAM.createResource('admin portal', ['view', 'manage'])
 
@@ -28,6 +26,7 @@ IAM.createResource({
 // Data
 console.warn('RESOURCES:')
 console.log(IAM.resources)
+console.log(IAM.resourceNames)
 
 // 2. Create authorization roles
 IAM.createRole('admin', {
@@ -46,7 +45,8 @@ IAM.all({
 })
 
 console.warn('ROLES:')
-console.table(IAM.roles)
+console.log(IAM.roles)
+console.log(IAM.roleNames)
 
 // 3. Authorize
 let user = new IAM.User('admin')
@@ -74,21 +74,26 @@ console.table(IAM.userlist)
 console.log(IAM.users)
 
 // -- Groups --
-IAM.createGroup('admin', 'superadmin')
-IAM.getGroup('admin').addRole('admin')
+IAM.createGroup('admin', 'subadmin', 'superadmin')
+IAM.getGroup('subadmin').addRole('admin')
+IAM.getGroup('admin').addMember('subadmin')
 IAM.getGroup('superadmin').addRole('superadmin').addMember('admin')
 console.table(IAM.grouplist)
 console.log(IAM.groups)
 
 user.revoke('admin')
 console.log(user.roles)
-user.join('admin')
-// user.join('superadmin')
-console.log(user.roles)
+// user.join('admin')
+user.join('superadmin')
+console.log('USER ROLES', user.roleNames)
 console.table(user.groups)
+console.log('---')
+console.table(user.rights)
+console.log('---')
 console.log(user.authorized('admin portal', 'manage'))
 console.log(user.authorized('super secret section', 'admin'))
 
 
 console.log(user.summary)
 console.log(user.trace('admin portal', 'manage'))
+console.log(user.lineage('admin portal', 'manage'))

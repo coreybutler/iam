@@ -1,5 +1,7 @@
 import User from './lib/user.js'
 import Group from './lib/group.js'
+import Role from './lib/role.js'
+import Resource from './lib/resource.js'
 
 class Manager {
   // Map of Set objects. Each set represents the actions
@@ -8,21 +10,7 @@ class Manager {
 
   // Stores the known roles.
   #roles = new Map()
-
-  // Map of resources to roles.
   #roleMap = new Map()
-
-  #forceArray = function () {
-    if (arguments.length > 1) {
-      return Array.from(arguments)
-    }
-
-    if (!Array.isArray(arguments[0])) {
-      return [arguments[0]]
-    }
-
-    return arguments[0]
-  }
 
   // Placeholders for registering users and groups.
   #groups = new Map()
@@ -30,8 +18,6 @@ class Manager {
   #users = new Set()
 
   constructor () {
-    this.createRole('everyone', {})
-
     Object.defineProperties(this, {
       getRoleRights: {
         enumerable: false,
@@ -40,54 +26,78 @@ class Manager {
         value: (role, resource = null) => {
           return resource === null ? this.#roles.get(role) : (this.#roles.get(role)[resource] || [])
         }
+      },
+
+      getRole: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: role => {
+          if (typeof role === 'symbol') {
+            return this.#roleMap.get(role)
+          }
+
+          return this.#roles.get(role instanceof Role ? role.name : role)
+        }
+      },
+
+      // Private method to keep track of users.
+      registerUser: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: user => {
+          this.#users.add(Object.defineProperty({}, 'user', {
+            get: () => user
+          }))
+        }
+      },
+
+      // Private method to keep track of groups.
+      registerGroup: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: group => {
+          this.#groups.set(group.name, group)
+          this.#groupMap.set(group.OID, group.name)
+        }
+      },
+
+      registerRole: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: role => {
+          this.#roles.set(role.name, role)
+          this.#roleMap.set(role.OID, role)
+        }
       }
     })
   }
 
-  // Private method to keep track of users.
-  registerUser (user) {
-    this.#users.add(Object.defineProperty({}, 'user', {
-      get: () => user
-    }))
-  }
-
-  // Private method to keep track of groups.
-  registerGroup (group) {
-    this.#groups.set(group.name, group)
-    this.#groupMap.set(group.OID, group.name)
-  }
-
   /**
-   * A JSON/object representation of the IAM resources
-   * @return {object}
+   * @property {Map}
+   * A representation of the IAM resources.
    */
   get resources () {
-    let data = {}
-    this.#resources.forEach((actions, resource) => data[resource] = Array.from(actions))
+    return new Map([...this.#resources])
+  }
 
-    return data
+  get resourceNames () {
+    return Array.from(this.#resources.keys()).sort()
   }
 
   /**
-   * A JSON/object representation of the registered IAM roles.
-   * @return {object}
+   * @property {Map}
+   * A representation of the IAM roles.
    */
   get roles () {
-    let data = {}
-
-    this.#roles.forEach((rights, role) => {
-      let resources = {}
-
-      Object.keys(rights).forEach(resource => resources[resource] = Array.from(rights[resource]))
-
-      data[role] = resources
-    })
-
-    return data
+    return new Map([...this.#roles])
   }
 
-  get map () {
-    return this.#roleMap
+  get roleNames () {
+    return Array.from(this.#roles.keys()).sort()
   }
 
   get User () {
@@ -156,10 +166,16 @@ class Manager {
    * is assigned if no other rights are provided.
    */
   createResource (name = null, rights = ['view']) {
+    let component
+
     if (typeof name === 'object') {
-      Object.keys(name).forEach(resource => this.#resources.set(resource, new Set([...this.#resources.get(resource) || [], ...name[resource]])))
+      Object.keys(name).forEach(resource => {
+        component = new Resource(resource, ...name[resource])
+        this.#resources.set(component.name, component)
+      })
     } else {
-      this.#resources.set(name, new Set([...this.#resources.get(name) || [], ...rights]))
+      component = new Resource(name, ...rights)
+      this.#resources.set(name, component)
     }
   }
 
@@ -202,17 +218,17 @@ class Manager {
    * is also assigned to another role which explicitly denies the right.
    */
   createRole (name, rights = {}) {
+    let role = new Role(name)
+
     Object.keys(rights).forEach(resource => {
       if (!this.#resources.has(resource.trim())) {
         throw new Error(`${resource.trim()} is not a recognized IAM system resource.`)
       }
 
-      rights[resource] = new Set([...this.#forceArray(rights[resource])])
-
-      this.#roleMap.set(resource, (this.#roleMap.get(resource) || new Set()).add(name))
+      role.assignRights(resource, rights[resource])
     })
 
-    this.#roles.set(name.trim(), rights)
+    this.#roles.set(role.name, role)
   }
 
   roleExists (role) {
@@ -276,36 +292,45 @@ class Manager {
       throw new Error(`${resource.trim()} is not a recognized IAM resource.`)
     }
 
-    let allowed = false
-    let rights = this.#resources.get(resource)
+    let rights = this.#resources.get(resource).rights
 
     if (!rights.has(right) && right !== '*') {
       return false
     }
 
-    for (let role of this.#roleMap.get(resource)) {
-      if (user.of(role)) {
-        let permissions = (this.#roles.get(role) || {})[resource]
-
-        if (permissions.has('allow:*') || permissions.has(`allow:${right}`)) {
-          return true
-        }
-
-        if (permissions.has(`deny:${right}`)) {
-          return false
-        }
-
-        if (permissions.has(right) || permissions.has('*')) {
-          allowed = true
-        }
+    for (let role of user.permissions) {
+      if (role.authorized(resource, right)) {
+        return true
       }
     }
+// console.error(user.roles)
+    // for (let role of this.#roleMap.get(resource)) {
+    //   if (user.of(role)) {
+    //     let permissions = (this.#roles.get(role) || {})[resource]
+    //
+    //     if (permissions.has('allow:*') || permissions.has(`allow:${right}`)) {
+    //       return true
+    //     }
+    //
+    //     if (permissions.has(`deny:${right}`)) {
+    //       return false
+    //     }
+    //
+    //     if (permissions.has(right) || permissions.has('*')) {
+    //       allowed = true
+    //     }
+    //   }
+    // }
 
-    return allowed
+    return false
   }
 
   getResourceRights (resource) {
     return this.#resources.get(resource) || []
+  }
+
+  getResource (name) {
+    return this.#resources.get(name)
   }
 
   /**
@@ -412,6 +437,8 @@ class Manager {
   }
 }
 
-const IAM = new Manager()
+const manager = new Manager()
 
-export { IAM as default, User, Group }
+manager.createRole('everyone', {})
+
+export { manager as default, User, Group }

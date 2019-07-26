@@ -1,6 +1,10 @@
 import User from './group.js'
 import IAM from '../main.js'
 
+/**
+ * @class IAM.Group
+ * Represents a group of users and groups (groups can be nested).
+ */
 export default class Group {
   #oid = null
   #name = null
@@ -53,30 +57,62 @@ export default class Group {
     })
   }
 
+  /**
+   * @property {Symbol} OID
+   * The object ID of the group.
+   */
   get OID () {
     return this.#oid
   }
 
+  /**
+   * @property {string}
+   * The descriptive name
+   */
   get name () {
     return this.#name
   }
 
+  /**
+   * @property {IAM.Role[]} roles
+   * Contains all of the roles assigned to the group.
+   * Each element of the response is a IAM.Role Object.
+   */
   get roles () {
+    let roles = this.permissions
+
+    return Array.from(this.permissions).map(oid => IAM.getRole(oid).name)
+  }
+
+  /**
+   * @property {Set} permissions
+   * Permissions associated with the group.
+   * Each element of the set contains a IAM.Role.OID symbol.
+   * @private
+   */
+  get permissions () {
     let roles = new Set([...this.#roles])
 
     if (this.#subgroups.size > 0) {
       this.#subgroups.forEach(subgroup => {
-        roles = new Set([...roles, ...IAM.getGroup(subgroup).roles])
+        roles = new Set([...roles, ...IAM.getGroup(subgroup).permissions])
       })
     }
 
-    return Array.from(roles)
+    return roles
   }
 
+  /**
+   * Add one or more roles to the group. Each argument
+   * can be the name of a role, the ID of a role, or the
+   * IAM.Role object.
+   * @chainable
+   * @return {IAM.Group}
+   */
   addRole () {
     Array.from(arguments).forEach(role => {
       if (IAM.roleExists(role)) {
-        this.#roles.add(role)
+        this.#roles.add(IAM.getRole(role).OID)
       } else {
         throw new Error(`"${role}" is not a recognized role.`)
       }
@@ -85,12 +121,24 @@ export default class Group {
     return this
   }
 
+  /**
+   * Remove one or more roles from the group.
+   * Each argument can be the name of a role, a role ID,
+   * or the IAM.Role object.
+   * @chainable
+   * @return {IAM.Group}
+   */
   removeRole () {
-    Array.from(arguments).forEach(role => this.#roles.delete(role))
+    Array.from(arguments).forEach(role => this.#roles.delete(IAM.getRole(role).OID))
 
     return this
   }
 
+  /**
+   * Remove all roles from the group.
+   * @chainable
+   * @return {IAM.Group}
+   */
   clearRoles () {
     this.#roles = new Set()
 
@@ -100,6 +148,8 @@ export default class Group {
   /**
    * Add a member to the group. All arguments should be
    * IAM.User, IAM.Group, or the name of a group.
+   * @chainable
+   * @return {IAM.Group}
    */
   addMember () {
     Array.from(arguments).forEach(member => {
@@ -121,6 +171,8 @@ export default class Group {
   /**
    * Remove a member from the group. All arguments should be
    * IAM.User, IAM.Group, or the name of a group.
+   * @chainable
+   * @return {IAM.Group}
    */
   removeMember () {
     Array.from(arguments).forEach(member => {
@@ -139,6 +191,8 @@ export default class Group {
 
   /**
    * Remove all members from the group (leaves it empty).
+   * @chainable
+   * @return {IAM.Group}
    */
   clearMembers () {
     this.#members = new Set()
@@ -155,9 +209,9 @@ export default class Group {
    * @param  {string} right
    * Permission/right.
    * @return {Object}
-   *
    */
   trace (resource, right) {
+    let forced = false
     let data = {
       type: 'group',
       group: this.#name,
@@ -167,38 +221,58 @@ export default class Group {
       lineage: null
     }
 
+    Object.defineProperty(data, 'forced', {
+      enumerable: false,
+      get () {
+        return forced
+      }
+    })
+
     // Identify non-nested roles
-    for (let role of this.#roles) {
-      let rights = IAM.getRoleRights(role)
+    for (let role of Array.from(this.#roles).map(role => IAM.getRole(role))) {
+      let permissions = role.rights.get(resource)
 
-      if (rights[resource]) {
-        for (let perm of rights[resource]) {
-          let permission = (new RegExp(`((allow|deny)\\:)?(${right}|\\*)`, 'i')).exec(perm)
+      if (permissions) {
+        for (let permission of permissions) {
+          if (permission.forced) {
+            forced = true
 
-          if (permission !== null) {
-            if (permission[2] === 'allow') {
-              return Object.assign(data, {
-                role,
-                allowed: true,
-                lineage: `${this.#name} (group) --> ${role} (role) --> ${right} (permission)`
-              })
-            } else if (permission[2] === 'deny') {
-              data = Object.assign(data, {
-
-              })
-            } else if (permission[3] === right && !data.hasOwnProperty('role')) {
-              data = Object.assign(data, {
-                role,
-                allowed: true,
-                lineage: `${this.#name} (group) --> ${role} (role) --> ${right} (permission)`
-              })
-            }
+            return Object.assign(data, {
+              role,
+              allowed: true,
+              lineage: `${this.#name} (group) --> ${role.name} (role) --> ${right} (right)`
+            })
+          } else if (permission.deined) {
+            data = Object.assign(data, {
+              role,
+              allowed: false,
+              lineage: `${this.#name} (group) --> ${role.name} (role) --> ${right} (right)`
+            })
+          } else if (permission.is(right) && !data.hasOwnProperty('role')) {
+            data = Object.assign(data, {
+              role,
+              allowed: true,
+              lineage: `${this.#name} (group) --> ${role.name} (role) --> ${right} (right)`
+            })
           }
         }
       }
     }
 
-    console.log(this.#subgroups, this.#name)
+    for (let group of this.#subgroups) {
+      let lineage = IAM.getGroup(group).trace(...arguments)
+
+      if (lineage !== null && (!data.hasOwnProperty('role') || lineage.forced || !data.allowed)) {
+        data = data || lineage
+        data.lineage = `${this.#name} (group) --> ${lineage.lineage.replace(/\(group\)/ig, '(subgroup)')}`
+        data.role = lineage.role
+        data.allowed = lineage.allowed
+
+        if (lineage.forced) {
+          return data
+        }
+      }
+    }
 
     return data.lineage !== null ? data : null
   }
