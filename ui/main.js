@@ -83,10 +83,10 @@ console.log(IAM.groups)
 
 user.revoke('admin')
 console.log(user.roles)
-// user.join('admin')
+user.join('admin')
 user.join('superadmin')
 console.log('USER ROLES', user.roleNames)
-console.table(user.groups)
+console.table(user.groupNames)
 console.log('---')
 console.table(user.rights)
 console.log('---')
@@ -95,5 +95,7 @@ console.log(user.authorized('super secret section', 'admin'))
 
 
 console.log(user.summary)
-console.log(user.trace('admin portal', 'manage'))
-console.log(user.lineage('admin portal', 'manage'))
+console.log(user.trace('admin portal', 'manage').data)
+
+console.log('============')
+console.log(IAM.configuration)

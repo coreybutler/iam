@@ -1,11 +1,26 @@
 import IAM from '../main.js'
+import Lineage from './lineage.js'
 
+/**
+ * @class IAM.User
+ * Represents a user of the IAM system.
+ * Users are assigned roles. Users may also be
+ * assigned _to_ groups. All group memberships
+ * apply to users as long as they are a member
+ * of the group.
+ */
 export default class User {
   #roles = new Set()
   #oid = Symbol('user')
   #name = null
   #memberOf = new Set()
 
+  /**
+   * @constructor
+   * Supply any number of string arguments to the
+   * constructor. Each string represents the name of
+   * an existing IAM.Role to be assigned to the user.
+   */
   constructor () {
     let roles = new Set(Array.from(arguments).map(name => name.trim()).filter(name => {
       name = name.trim()
@@ -64,14 +79,30 @@ export default class User {
     this.#name = value.toString().trim()
   }
 
+  /**
+   * @property {IAM.Role[]} roles
+   * The roles assigned to the user. This includes
+   * and roles inherited from group membership.
+   */
   get roles () {
     return Array.from(this.permissions)
   }
 
+  /**
+   * @property {string[]} roleNames
+   * The names of the roles associated with the user.
+   * This includes roles inherited from group membership.
+   */
   get roleNames () {
     return this.roles.map(role => role.name)
   }
 
+  /**
+   * @property {Set} permissions
+   * A set of rights (by resource) associated with the user.
+   * This includes rights inherited from group membership.
+   * @private
+   */
   get permissions () {
     let roles = new Set([...this.#roles])
 
@@ -82,6 +113,11 @@ export default class User {
     return new Set([...Array.from(roles).map(role => IAM.getRole(role))])
   }
 
+  /**
+   * @property {object} rights
+   * An object containing resource names (key) and an array of rights (string values).
+   * This represents all of the rights a user has.
+   */
   get rights () {
     let roles = new Set([...IAM.roles.values(), ...this.permissions])
     let data = new Map()
@@ -117,7 +153,19 @@ export default class User {
     return Object.fromEntries(data)
   }
 
+  /**
+   * @property {IAM.Group[]} groups
+   * An array of group object associated with the user.
+   */
   get groups () {
+    return Array.from(this.#memberOf).map(oid => IAM.getGroup(oid))
+  }
+
+  /**
+   * @property {string[]}
+   * An array of group names associated with the user.
+   */
+  get groupNames () {
     return Array.from(this.#memberOf).map(oid => IAM.getGroup(oid).name)
   }
 
@@ -158,6 +206,8 @@ export default class User {
    * Assign user a new role.
    * @param  {string|IAM.Role} name
    * Name of the role. This can also be a comma separated list (multiargument).
+   * @chainable
+   * @return {IAM.User}
    */
   assign () {
     Array.from(arguments).forEach(role => {
@@ -171,6 +221,8 @@ export default class User {
    * Unassign user from new role.
    * @param  {string} role
    * Name of the role. This can also be a comma separated list (multiargument).
+   * @chainable
+   * @return {IAM.User}
    */
   revoke () {
     Array.from(arguments).forEach(role => {
@@ -186,7 +238,8 @@ export default class User {
 
   /**
    * Clear the user of all roles (except the `everyone` role)
-   * @return {[type]} [description]
+   * @chainable
+   * @return {IAM.User}
    */
   clear () {
     this.#roles = new Set([...IAM.getRole('everyone').OID])
@@ -213,12 +266,20 @@ export default class User {
   /**
    * Join a group/s. This method will take any number
    * of valid strings or IAM.Group objects as arguments.
+   * @chainable
+   * @return {IAM.User}
    */
   join () {
     Array.from(arguments).forEach(group => IAM.assignUserGroup(this, group))
     return this
   }
 
+  /**
+   * Remove a user from a group. This method will take any number
+   * of valid strings or IAM.Group objects as arguments.
+   * @chainable
+   * @return {IAM.User}
+   */
   leave () {
     Array.from(arguments).forEach(group => IAM.removeUserGroup(this, group))
     return this
@@ -232,19 +293,11 @@ export default class User {
    * Resource name.
    * @param  {string} right
    * Permission/right.
-   * @return {Object}
-   *
+   * @return {IAM.Lineage}
+   * A lineage object representing how a right was applied.
    */
   trace (resource, right) {
-    let data = {
-      type: 'role',
-      role: null,
-      group: null,
-      resource,
-      right,
-      allowed: false,
-      lineage: null
-    }
+    let data = new Lineage(...arguments)
 
     // Get relevant roles directly assigned to the user
     for (let role of Array.from(this.#roles).map(role => IAM.getRole(role))) {
@@ -253,23 +306,18 @@ export default class User {
       if (permissions) {
         for (let permission of permissions) {
           if (permission.forced) {
-            return Object.assign(data,{
-              role,
-              allowed: true,
-              lineage: `${role.name} (role) --> ${RIGHTS} (right)`
-            })
+            data.role = role
+            data.allow(true)
+            data.stack = [role, permission]
+            return data
           } else if (permission.denied) {
-            data = Object.assign(data, {
-              role,
-              allowed: false,
-              lineage: `${role.name} (role) --> ${right} (right)`
-            })
-          } else if (permission.is(right) && !data.hasOwnProperty('role')) {
-            data = Object.assign(data, {
-              role,
-              allowed: true,
-              lineage: `${role.name} (role) --> ${right} (right)`
-            })
+            data.role = role
+            data.deny()
+            data.stack = [role, permission]
+          } else if (permission.is(right) && !data.hasRole) {
+            data.role = role
+            this.allow()
+            data.stack = [role, permission]
           }
         }
       }
@@ -280,34 +328,26 @@ export default class User {
       let lineage = IAM.getGroup(group).trace(...arguments)
 
       if (lineage !== null && (!data.hasOwnProperty('role') || lineage.forced || !data.allowed)) {
-        data = data || lineage
-        data.lineage = lineage.lineage
+        data.stack = lineage.stack
         data.group = lineage.group
         data.role = lineage.role
-        data.allowed = lineage.allowed
 
         if (lineage.forced) {
+          data.allow(true)
           return data
+        }
+
+        if (data.allowed !== lineage.allowed) {
+          if (lineage.allowed) {
+            data.allow()
+          } else {
+            data.deny()
+          }
         }
       }
     }
 
-    return data.lineage !== null ? data : null
-  }
-
-  lineage(resource, right) {
-    let lineage = this.trace(...arguments)
-
-    return lineage.lineage.split(/\s+?\-+\>\s+?/i).map(source => {
-      // Get group
-      if (/\((.+)?group\)/i.test(source)) {
-        return IAM.getGroup(source.replace(/\((.+)?group\)/gi, '').trim())
-      } else if (/\(role\)/i.test(source)) {
-        return IAM.getRole(source.replace(/\(.+\)/gi, '').trim())
-      }
-
-      return source
-    })
+    return data.empty ? null : data
   }
 
   /**

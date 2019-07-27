@@ -64,6 +64,15 @@ export default class Right {
     return this.#overridable
   }
 
+  get data () {
+    return {
+      name: this.#name,
+      description: this.#description ||  `${this.allowed ? 'Grant' : 'Deny'} ` + (this.all ? `all privileges.` : `${this.#name} privilege.`),
+      right: this.#displayName,
+      allowed: this.allowed
+    }
+  }
+
   /**
    * Matches a right by name. This does not account for resource.
    * @param  {string} name

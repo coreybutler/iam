@@ -47,7 +47,7 @@ export default class Resource {
    * for reporting purposes.
    */
   get description () {
-    return this.#description || 'No description available.'
+    return this.#description || `${this.#name} resource.`
   }
 
   set description (value) {
@@ -60,5 +60,13 @@ export default class Resource {
    */
   get rights () {
     return this.#rights
+  }
+
+  get data () {
+    return {
+      name: this.#name,
+      description: this.description,
+      rights: Array.from(this.#rights.keys())
+    }
   }
 }

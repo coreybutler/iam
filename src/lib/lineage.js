@@ -1,10 +1,9 @@
 import IAM from '../main.js'
-import Group from './group.js'
-import User from './user.js'
+import Right from './right.js'
 import Role from './role.js'
+import Group from './group.js'
 
 export default class Lineage {
-  #type = 'role'
   #role = null
   #group = null
   #resource = null
@@ -12,61 +11,11 @@ export default class Lineage {
   #allowed = false
   #forced = false
   #stack = []
-  #display = []
+  #permission = null
 
-  constructor (resource, right) {
+  constructor (resource = null, right = null) {
     this.#resource = resource
-    this.#right = right
-    this.#stack.push(right instanceof Right ? right.name : right)
-    this.#display.push(`${right instanceof Right ? right.name : right} (right)`)
-
-    Object.defineProperties(this, {
-      stack: {
-        enumerable: false,
-        get () {
-          return this.#stack
-        }
-      },
-      display: {
-        enumerable: false,
-        get () {
-          return this.#display
-        }
-      }
-    })
-  }
-
-  set role (value) {
-    this.#role = value
-    this.#stack.push(value)
-    this.#display.push(`${value.name} (role)`)
-  }
-
-  set group (value) {
-    this.#group = value
-    this.#stack.push(value)
-    this.#display.push(`${value.name} (group)`)
-  }
-
-  get data () {
-    if (this.#stack.length === 0) {
-      return null
-    }
-
-    return {
-      type: this.#type,
-      role: this.#role,
-      group: this.#group,
-      resource: this.#resource,
-      right: this.#right,
-      allowed: this.#allowed,
-      lineage: this.#display.join(' --> '),
-      stack: this.#stack.reverse()
-    }
-  }
-
-  get forced () {
-    return this.#forced
+    this.#permission = right
   }
 
   get allowed () {
@@ -77,63 +26,104 @@ export default class Lineage {
     return !this.#allowed
   }
 
-  allow (force = false) {
-    this.#allowed = true
+  get hasRole () {
+    return this.#role !== null
+  }
 
+  get empty () {
+    return this.#stack.length < 2
+  }
+
+  set stack (value) {
+    if (!Array.isArray(value)) {
+      value = [value]
+    }
+
+    if (value.length > 1 && value[value.length - 2] instanceof Role) {
+      this.#role = value[value.length - 2]
+    }
+
+    this.right = value[value.length - 1]
+    this.#stack = value
+  }
+
+  get stack () {
+    return this.#stack
+  }
+
+  set right (value) {
+    if (this.#right === null || value instanceof Right) {
+      this.#right = value
+    }
+  }
+
+  get forced () {
+    return this.#forced
+  }
+
+  get display () {
+    return this.stack.map((item, index, currentStack) => {
+      if (item instanceof Role) {
+        return `${item.name} (role)`
+      }
+
+      if (item instanceof Right) {
+        return `${item.name} (${this.denied ? 'denied ' : ''}right to${item.name === '*' ? ' ' + this.#permission : ''})`
+      }
+
+      if (item instanceof Group) {
+        return `${item.name} (${index > 0 ? 'sub' : ''}group)`
+      }
+
+      return `${item} (right)`
+    }).join(' --> ')
+  }
+
+  get group () {
+    return this.#group
+  }
+
+  set group (value) {
+    this.#group = value
+  }
+
+  set role (value) {
+    this.#role = value
+  }
+
+  get role () {
+    return this.#role
+  }
+
+  get data () {
+    if (this.#stack.length === 0) {
+      return null
+    }
+
+    return {
+      type: this.#group === null ? 'group' : 'role',
+      resource: IAM.getResource(this.#resource),
+      right: this.#permission,
+      granted: this.#allowed,
+      governedBy: {
+        group: this.#group,
+        role: this.#role,
+        right: this.#right
+      },
+      stack: this.stack,
+      display: this.display
+    }
+  }
+
+  allow (force = false) {
     if (force) {
       this.#forced = true
     }
+
+    this.#allowed = true
   }
 
   deny () {
     this.#allowed = false
-  }
-
-  trace (entity) {
-    if (entity instanceof User) {
-      // Get relevant roles directly assigned to the user
-      for (let role of entity.roles) {
-        let permissions = role.rights.get(this.#resource)
-
-        if (permissions) {
-          for (let permission of permissions) {
-            if (permission.allowed) {
-              this.allow(permission.forced)
-            } else if (permission.denied) {
-              this.deny()
-            }
-
-            if (permission.forced) {
-              this.role = role
-            } else if (permission.denied) {
-              this.role = role
-            } else if (permission.is(right) && !data.hasOwnProperty('role')) {
-              this.role = role
-            }
-          }
-        }
-      }
-
-      // Get roles assigned to the user via a group
-      for (let group of entity.groups) {
-        let lineage = group.trace(...arguments)
-
-        if (lineage !== null && (!this.#role === null || lineage.forced || this.denied)) {
-          this.#stack = lineage.stack
-          this.#display = lineage.display
-          this.#group = lineage.group
-          this.#role = lineage.role
-
-          if (lineage.allowed) {
-            this.allow(lineage.forced)
-          } else {
-            this.deny()
-          }
-        }
-      }
-    } else if (entity instanceof Group) {
-      this.#forced = false
-      this.group = entity
-    }
   }
 }

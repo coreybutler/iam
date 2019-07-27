@@ -43,7 +43,9 @@ export default class Role {
   get data () {
     let data = {}
 
-    this.#permissions.forEach((rights, resource) => data[resource] = Array.from(rights))
+    this.#permissions.forEach((rights, resource) => {
+      return data[resource] = Array.from(rights).map(right => right.data)
+    })
 
     return data
   }
@@ -71,7 +73,7 @@ export default class Role {
 
     for (let permission of rights) {
       if (permission.is(right)) {
-        return true
+        return permission.allowed
       }
     }
 

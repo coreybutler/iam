@@ -2,6 +2,8 @@ import User from './lib/user.js'
 import Group from './lib/group.js'
 import Role from './lib/role.js'
 import Resource from './lib/resource.js'
+import Right from './lib/right.js'
+import Lineage from './lib/lineage.js'
 
 class Manager {
   // Map of Set objects. Each set represents the actions
@@ -103,6 +105,21 @@ class Manager {
   get User () {
     return User
   }
+  get Group () {
+    return Group
+  }
+  get Resource () {
+    return Resource
+  }
+  get Right () {
+    return Right
+  }
+  get Lineage () {
+    return Lineage
+  }
+  get Role () {
+    return Role
+  }
 
   /**
    * IAM.User objects associated with the manager.
@@ -137,11 +154,13 @@ class Manager {
   }
 
   get configuration () {
-    return {
-      resources: Object.fromEntries(this.#resources),
-      roles: Object.fromEntries(this.#roles),
-      groups: Object.fromEntries(this.#groups)
-    }
+    let data = { resources: {}, roles: {}, groups: {} }
+
+    this.#resources.forEach(resource => data.resources[resource.name] = resource.data)
+    this.#roles.forEach(role => data.roles[role.name] = role.data)
+    this.#groups.forEach(group => data.groups[group.name] = group.data)
+
+    return data
   }
 
   /**
@@ -303,24 +322,6 @@ class Manager {
         return true
       }
     }
-// console.error(user.roles)
-    // for (let role of this.#roleMap.get(resource)) {
-    //   if (user.of(role)) {
-    //     let permissions = (this.#roles.get(role) || {})[resource]
-    //
-    //     if (permissions.has('allow:*') || permissions.has(`allow:${right}`)) {
-    //       return true
-    //     }
-    //
-    //     if (permissions.has(`deny:${right}`)) {
-    //       return false
-    //     }
-    //
-    //     if (permissions.has(right) || permissions.has('*')) {
-    //       allowed = true
-    //     }
-    //   }
-    // }
 
     return false
   }
@@ -431,6 +432,10 @@ class Manager {
    * Returns `null` if the group is unrecognized.
    */
   getGroup (name) {
+    if (name instanceof Group) {
+      return this.#groups.get(name.name)
+    }
+
     return typeof name === 'symbol'
       ? this.#groups.get(this.#groupMap.get(name))
       : this.#groups.get(name)
@@ -441,4 +446,4 @@ const manager = new Manager()
 
 manager.createRole('everyone', {})
 
-export { manager as default, User, Group }
+export { manager as default, User, Group, Resource, Role, Right, Lineage }

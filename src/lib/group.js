@@ -1,5 +1,6 @@
-import User from './group.js'
 import IAM from '../main.js'
+import User from './group.js'
+import Lineage from './lineage.js'
 
 /**
  * @class IAM.Group
@@ -53,6 +54,12 @@ export default class Group {
         value: group => {
           this.#subgroups.remove(group.OID)
         }
+      },
+      memberGroups: {
+        enumerable: false,
+        get () {
+          return this.#subgroups
+        }
       }
     })
   }
@@ -100,6 +107,15 @@ export default class Group {
     }
 
     return roles
+  }
+
+  get data () {
+    return {
+      name: this.#name,
+      memberOf: Array.from(this.#memberOf).map(group => IAM.getGroup(group).name),
+      members: Array.from(this.#members).map(user => user.name),
+      roles: Array.from(this.#roles).map(oid => IAM.getRole(oid).name)
+    }
   }
 
   /**
@@ -208,25 +224,10 @@ export default class Group {
    * Resource name.
    * @param  {string} right
    * Permission/right.
-   * @return {Object}
+   * @return {IAM.Lineage}
    */
   trace (resource, right) {
-    let forced = false
-    let data = {
-      type: 'group',
-      group: this.#name,
-      resource,
-      right,
-      allowed: false,
-      lineage: null
-    }
-
-    Object.defineProperty(data, 'forced', {
-      enumerable: false,
-      get () {
-        return forced
-      }
-    })
+    let data = new Lineage(...arguments)
 
     // Identify non-nested roles
     for (let role of Array.from(this.#roles).map(role => IAM.getRole(role))) {
@@ -235,25 +236,18 @@ export default class Group {
       if (permissions) {
         for (let permission of permissions) {
           if (permission.forced) {
-            forced = true
-
-            return Object.assign(data, {
-              role,
-              allowed: true,
-              lineage: `${this.#name} (group) --> ${role.name} (role) --> ${right} (right)`
-            })
+            data.allow(true)
+            data.role = role
+            data.stack = [this, role, permission]
+            return data
           } else if (permission.deined) {
-            data = Object.assign(data, {
-              role,
-              allowed: false,
-              lineage: `${this.#name} (group) --> ${role.name} (role) --> ${right} (right)`
-            })
+            data.role = role
+            data.deny()
+            data.stack = [this, role, permission]
           } else if (permission.is(right) && !data.hasOwnProperty('role')) {
-            data = Object.assign(data, {
-              role,
-              allowed: true,
-              lineage: `${this.#name} (group) --> ${role.name} (role) --> ${right} (right)`
-            })
+            data.role = role
+            data.allow()
+            data.stack = [this, role, permission]
           }
         }
       }
@@ -263,17 +257,29 @@ export default class Group {
       let lineage = IAM.getGroup(group).trace(...arguments)
 
       if (lineage !== null && (!data.hasOwnProperty('role') || lineage.forced || !data.allowed)) {
-        data = data || lineage
-        data.lineage = `${this.#name} (group) --> ${lineage.lineage.replace(/\(group\)/ig, '(subgroup)')}`
+        data.stack = [...[this], ...lineage.stack]//, ...data.stack]
         data.role = lineage.role
-        data.allowed = lineage.allowed
+        data.group = this
 
         if (lineage.forced) {
+          data.allow(true)
           return data
+        }
+
+        if (data.allowed !== lineage.allowed) {
+          if (lineage.allowed) {
+            data.allow()
+          } else {
+            data.deny()
+          }
         }
       }
     }
 
-    return data.lineage !== null ? data : null
+    return data
+  }
+
+  lineage () {
+    return IAM.lineage.apply(this, arguments)
   }
 }
