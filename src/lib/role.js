@@ -20,7 +20,7 @@ export default class Role {
 
   constructor (name, rights = null) {
     this.#name = name
-    this.#oid = Symbol(name)
+    this.#oid = Symbol(`${name} role`)
     IAM.registerRole(this)
   }
 
@@ -60,7 +60,7 @@ export default class Role {
 
   assignRights (resource, rights = new Set()) {
     rights = rights instanceof Symbol ? rights : new Set([...this.#forceArray(rights)])
-    rights = new Set([...Array.from(rights).map(right => new Right(right))])
+    rights = new Set([...Array.from(rights).map(right => right instanceof Right ? right : new Right(right))])
     this.#permissions.set(resource, rights)
   }
 
@@ -78,6 +78,10 @@ export default class Role {
     }
 
     return false
+  }
+
+  clear () {
+    this.#permissions = new Map()
   }
 
   // TODO: Add resource pointers

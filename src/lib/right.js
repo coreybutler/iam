@@ -9,8 +9,32 @@ export default class Right {
   #description = null
 
   constructor (name) {
+    if (typeof name !== 'string') {
+      if (name instanceof Right) {
+        throw new Error(`Cannot construct a new right using an existing right (${name.name})`)
+      }
+
+      if (typeof name === 'object' && (name.hasOwnProperty('right') || name.hasOwnProperty('name'))) {
+        if (name.hasOwnProperty('allowed') && typeof name.allowed === 'boolean') {
+          this.#granted = name.allowed
+        }
+
+        if (name.hasOwnProperty('description')) {
+          this.#description = name.description.trim()
+        }
+console.error(name)
+        if (name.hasOwnProperty('right')) {
+          name = name.right
+        } else {
+          name = name.name
+        }
+      } else {
+        throw new Error(`${typeof name} is an invalid right name.`)
+      }
+    }
+
     this.#displayName = name.trim()
-    this.#oid = Symbol(name.trim().toLowerCase())
+    this.#oid = Symbol(`${name.trim().toLowerCase()} right`)
 
     let permission = Right.Parser.exec(name.trim())
 

@@ -16,7 +16,7 @@ export default class Group {
 
   constructor (name = 'Unknown Group') {
     this.#name = name
-    this.#oid = Symbol(this.#name)
+    this.#oid = Symbol(`${this.#name} group`)
 
     IAM.registerGroup(this)
 
@@ -194,7 +194,7 @@ export default class Group {
     Array.from(arguments).forEach(member => {
       if (member instanceof IAM.User) {
         this.#members.delete(member.OID)
-        user.removeMembership(this.#oid)
+        member.removeMembership(this.#oid)
       } else if (member instanceof Group) {
         member.removeParentGroup(this)
       } else if (typeof member === 'string') {

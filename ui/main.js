@@ -98,4 +98,14 @@ console.log(user.summary)
 console.log(user.trace('admin portal', 'manage').data)
 
 console.log('============')
-console.log(IAM.configuration)
+console.log(JSON.stringify(IAM.configuration))
+localStorage.setItem('tmp.iam.cfg', JSON.stringify(IAM.configuration))
+
+let cfg = localStorage.getItem('tmp.iam.cfg')
+
+console.log('Configuration Test')
+console.log('Before Reset', IAM.configuration)
+IAM.reset()
+console.log('After Reset', IAM.configuration)
+IAM.load(cfg)
+console.log('Loaded', IAM.configuration)

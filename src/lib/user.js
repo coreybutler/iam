@@ -1,4 +1,5 @@
 import IAM from '../main.js'
+import Role from './role.js'
 import Lineage from './lineage.js'
 
 /**
@@ -54,7 +55,7 @@ export default class User {
         writable: false,
         configurable: false,
         value: group => {
-          this.#memberOf.delete(group)
+          this.#memberOf.delete(IAM.getGroup(group).OID)
         }
       },
       groupRoles: {
@@ -137,7 +138,16 @@ export default class User {
         if (right.allowed) {
           data.set(resource, new Set([...data.get(resource), ...permissions]))
         } else {
-          permissions.forEach(permission => data.set(resource, data.get(resource).delete(permission)))
+          permissions.forEach(permission => {
+            if (data.has(resource)) {
+              let record = data.get(resource) || new Map()
+
+              if (record.has(permission)) {
+                record.delete(permission)
+                data.set(resource, record)
+              }
+            }
+          })
         }
 
         if (right.force) {
@@ -158,6 +168,10 @@ export default class User {
    * An array of group object associated with the user.
    */
   get groups () {
+    if (this.#memberOf.length === 0) {
+      return []
+    }
+
     return Array.from(this.#memberOf).map(oid => IAM.getGroup(oid))
   }
 
@@ -166,7 +180,21 @@ export default class User {
    * An array of group names associated with the user.
    */
   get groupNames () {
-    return Array.from(this.#memberOf).map(oid => IAM.getGroup(oid).name)
+    if (this.#memberOf.size === 0) {
+      return []
+    }
+
+    return this.groups.map(group => group.name)
+  }
+
+  get data () {
+    let data = {
+      name: this.#name,
+      groups: this.groupNames,
+      roles: this.roleNames.filter(role => role.trim().toLowerCase() !== 'everyone')
+    }
+
+    return data
   }
 
   /**
@@ -178,7 +206,15 @@ export default class User {
    * @return {boolean}
    */
   of (role) {
-    role = typeof role === 'symbol' ? role : (role instanceof Role ? role.OID : IAM.getRole(role)).OID
+    if (!role) {
+      return false
+    }
+
+    if (!IAM.roleExists(role)) {
+      return false
+    }
+
+    role = typeof role === 'symbol' ? role : (role instanceof Role ? role.OID : (IAM.getRole(role)).OID || null)
 
     if (typeof role !== 'symbol') {
       throw new (`Invalid role: "${role.toString()}"`)
@@ -230,7 +266,9 @@ export default class User {
         throw new Error('Cannot revoke the "everyone" role.')
       }
 
-      this.#roles.delete(IAM.getRole(role.trim()).OID)
+      if (this.of(role)) {
+        this.#roles.delete(typeof role === 'symbol' ? role : IAM.getRole(role.trim()).OID)
+      }
     })
 
     return this
@@ -281,7 +319,7 @@ export default class User {
    * @return {IAM.User}
    */
   leave () {
-    Array.from(arguments).forEach(group => IAM.removeUserGroup(this, group))
+    Array.from(arguments).forEach(group => IAM.removeGroupMember(group, this))
     return this
   }
 
@@ -316,7 +354,7 @@ export default class User {
             data.stack = [role, permission]
           } else if (permission.is(right) && !data.hasRole) {
             data.role = role
-            this.allow()
+            data.allow()
             data.stack = [role, permission]
           }
         }

@@ -15,6 +15,7 @@ export default class Resource {
 
   constructor () {
     this.#name = arguments[0]
+    this.#oid = Symbol(`${this.#name} resource`)
 
     Array.from(arguments).forEach((permission, i) => {
       if (i > 0) {
@@ -51,7 +52,9 @@ export default class Resource {
   }
 
   set description (value) {
-    this.#description = value.trim()
+    if (this.#description !== value) {
+      this.#description = value.trim()
+    }
   }
 
   /**

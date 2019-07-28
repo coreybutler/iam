@@ -74,6 +74,15 @@ class Manager {
           this.#roles.set(role.name, role)
           this.#roleMap.set(role.OID, role)
         }
+      },
+
+      getResourceRights: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: resource => {
+          return this.#resources.get(resource) || []
+        }
       }
     })
   }
@@ -149,10 +158,15 @@ class Manager {
    * A list of group names.
    * @return {string[]}
    */
-  get grouplist () {
+  get groupNames () {
     return Array.from(this.#groups.keys())
   }
 
+  /**
+   * @property {object} configuration
+   * A JSON/object representation of the entire IAM system (excluding users).
+   * This object can be saved/reloaded to recreate an IAM system.
+   */
   get configuration () {
     let data = { resources: {}, roles: {}, groups: {} }
 
@@ -160,7 +174,91 @@ class Manager {
     this.#roles.forEach(role => data.roles[role.name] = role.data)
     this.#groups.forEach(group => data.groups[group.name] = group.data)
 
+    if (this.#users.size > 0) {
+      data.users = Array.from(this.#users).map(user => user.user.data)
+    }
+
     return data
+  }
+
+  /**
+   * Configure the IAM system with a predefined configuration.
+   * @param  {Object} configuration
+   * The configuration describing the system. This can be the output from the
+   * #configuration property.
+   * @chainable
+   * @return {IAM}
+   * Returns a reference to the configured IAM system.
+   */
+  load (cfg = {}) {
+    if (typeof cfg === 'string') {
+      try {
+        cfg = JSON.parse(cfg)
+      } catch (e) {
+        throw new Error('Invalid configuration. Could not parse the string into a valid JSON object.')
+      }
+    }
+
+    this.reset()
+
+    console.error(cfg)
+    // Load resources first
+    if (cfg.hasOwnProperty('resources')) {
+      Object.keys(cfg.resources).forEach(resource => {
+        this.createResource(cfg.resources[resource].name, cfg.resources[resource].rights)
+        let newResource = this.getResource(cfg.resources[resource].name)
+
+        if (cfg.resources[resource].hasOwnProperty('description')) {
+          newResource.description = cfg.resources[resource].description
+        }
+      })
+    }
+
+    if (this.#resources.size === 0) {
+      throw new Error('Invalid configuration. No resources specified.')
+    }
+
+    // Load roles
+    if (cfg.hasOwnProperty('roles')) {
+      Object.keys(cfg.roles).forEach(role => {
+        this.createRole(role, cfg.roles[role])
+      })
+    }
+
+    // Load groups
+    if (cfg.hasOwnProperty('groups')) {
+      //  First iteration creates groups
+      Object.keys(cfg.groups).forEach(group => {
+        group = cfg.groups[group]
+
+        let grp = this.createGroup(group.name)
+
+        if (group.hasOwnProperty('roles') && group.roles.length > 0) {
+          grp.addRole(...group.roles)
+        }
+      })
+    }
+
+    // Load users
+    if (cfg.hasOwnProperty('users')) {
+      this.#users = new Set()
+
+      cfg.users.forEach(user => {
+        let newUser = new IAM.User(...(user.hasOwnProperty('roles') ? user.roles : []))
+
+        if (user.hasOwnProperty('name')) {
+          newUser.name = user.name
+        }
+
+        if (user.hasOwnProperty('groups')) {
+          newUser.join(...user.groups)
+        }
+
+        if (user.hasOwnProperty('roles')) {
+          newUser.assign(...user.roles)
+        }
+      })
+    }
   }
 
   /**
@@ -212,6 +310,18 @@ class Manager {
    */
   clearResources () {
     this.#resources = new Map()
+    this.clearGroups()
+    this.clearRoles()
+  }
+
+  /**
+   * Retrieve a named resource.
+   * @param  {string} name
+   * Name of the resource.
+   * @return {IAM.Resource}
+   */
+  getResource (name) {
+    return this.#resources.get(name)
   }
 
   /**
@@ -244,12 +354,27 @@ class Manager {
         throw new Error(`${resource.trim()} is not a recognized IAM system resource.`)
       }
 
-      role.assignRights(resource, rights[resource])
+      let permissions = Array.from(rights[resource]).map(right => {
+        let perm = new Right(typeof right === 'object' ? (right.right || right.name) : right)
+
+        if (typeof right === 'object' && right.hasOwnProperty('description')) {
+          perm.description = right.description
+        }
+        return perm
+      })
+
+      role.assignRights(resource, permissions)
     })
 
     this.#roles.set(role.name, role)
   }
 
+  /**
+   * Determines whether a role exists.
+   * @param  {string} name
+   * Name of the role to check for.
+   * @return {boolean}
+   */
   roleExists (role) {
     return this.#roles.has(role)
   }
@@ -264,7 +389,12 @@ class Manager {
    */
   deleteRole () {
     Array.from(arguments).forEach(role => {
-      this.#roles.delete(role.trim())
+      role = this.getRole(role)
+
+      if (role.name !== 'everyone') {
+        this.#roles.delete(role.name.trim())
+        this.#users.forEach(user => user.user.revoke(role.name.trim()))
+      }
     })
 
     this.#groups.forEach(group => {
@@ -276,13 +406,43 @@ class Manager {
   }
 
   /**
+   * Remove all roles from the IAM system.
+   */
+  clearRoles () {
+    if (this.#roles.size > 0) {
+      this.#roles.forEach(role => {
+        role = IAM.getRole(role)
+
+        if (role.name !== 'everyone') {
+          this.deleteRole(role.name)
+        } else {
+          role.clear()
+        }
+      })
+    }
+  }
+
+  /**
+   * Remove all groups from the IAM system.
+   */
+  clearGroups () {
+    if (this.#groups.size > 0) {
+      this.#groups.forEach(group => this.#users.forEach(user => IAM.removeGroupMember(group, user.user)))
+      this.#groups = new Map()
+      this.#groupMap = new Map()
+    }
+  }
+
+  /**
    * Assigns resource rights to all users. Internally, this modifies the rights
    * of a reserved role name called `everyone`.
    * @param  {Object} [acl={}]
    * @return {[type]}          [description]
    */
   all (acl = {}) {
-    this.deleteRole('everyone')
+    if (this.#roles.has('everyone')) {
+      this.#roles.delete('everyone')
+    }
 
     if (acl !== null && typeof acl === 'object') {
       this.createRole('everyone', acl)
@@ -326,14 +486,6 @@ class Manager {
     return false
   }
 
-  getResourceRights (resource) {
-    return this.#resources.get(resource) || []
-  }
-
-  getResource (name) {
-    return this.#resources.get(name)
-  }
-
   /**
    * Create a new IAM.Group with a unique name.
    * @return {IAM.Group|array}
@@ -344,6 +496,7 @@ class Manager {
     Array.from(arguments).forEach(name => {
       let group = new Group(name)
       this.#groups.set(name, group)
+      this.#groupMap.set(group.OID, name)
     })
 
     if (arguments.length === 1) {
@@ -364,6 +517,7 @@ class Manager {
         group.clearMembers()
       }
 
+      this.#groupMap.delete(group.OID)
       this.#groups.delete(name)
     })
   }
@@ -393,25 +547,19 @@ class Manager {
 
   /**
    * Remove a user from a group.
+   * @param  {string|IAM.Group} group
+   * The name of the group to remove the user from.
    * @param  {IAM.User} user
    * The user to remove from the group.
-   * @param  {string|IAM.Group} groupName
-   * The name of the group to remove the user from.
-   * Any number of groups can be removed at the same time by adding additional
-   * group names/objects as arguments to the function (i.e. `assugnUserGroup(userObject, 'grp1', 'grp2', 'etc')`).
    */
-  removeUserGroup (user, group) {
-    Array.from(arguments).forEach((group, i) => {
-      if (i > 0) { // Skip the first argument, which is the user object.
-        let grp = this.#groups.get(group instanceof IAM.Group ? group.name : group)
+  removeGroupMember (group, user) {
+    group = IAM.getGroup(group)
 
-        if (!grp) {
-          throw new Error(`Could not assign user to "${name}". The group is not recognized/registered with the IAM system.`)
-        }
+    if (!group) {
+      throw new Error(`Could not remove user from "${group.name || group}". The group is not recognized/registered with the IAM system.`)
+    }
 
-        grp.removeMember(user)
-      }
-    })
+    group.removeMember(user)
   }
 
   /**
@@ -439,6 +587,23 @@ class Manager {
     return typeof name === 'symbol'
       ? this.#groups.get(this.#groupMap.get(name))
       : this.#groups.get(name)
+  }
+
+  /**
+   * Completely clears the IAM system of all known
+   * resources, roles, groups, and rights. It also
+   * updates (clears) rights associated with any recognized users,
+   * but it does not remove the users.
+   */
+  reset () {
+    if (this.#resources.size > 0) {
+      this.clearResources()
+    }
+
+    // Assure the "everyone" role exists
+    if (!this.roleExists('everyone')) {
+      this.createRole('everyone', {})
+    }
   }
 }
 
