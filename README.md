@@ -34,7 +34,7 @@ a global browser namespace.
 
 **Resources** are arbitrary names associated with an application, such as `admin portal`, `user settings`, or an any other component of a system where access should be controlled.
 
-**Rights** are with each resource.
+**Rights** are defined for each resource.
 
     For example, the `admin portal` resource may have `view` and `manage` rights associated with it. Users who are granted `view` rights should be able to see the `admin portal`, while users with `manage` rights can do something in the admin portal. Users without either of these rights shouldn't see the admin portal at all.
 
