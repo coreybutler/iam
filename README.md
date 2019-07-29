@@ -81,11 +81,12 @@ const iam = new IAM()
 
 Resources can be thought of as components of a system. For example, in a UI, there may be several different pages/tools available to users. Each page/tool could be a unique resource. A basic web application may have a user page, admin section, and a few tools. All of these could be resources. It is up to the developer to identify and organize resources within the system.
 
-Rights can be thought of as actions, permissions, features, etc. Rights often represent what a user can or can't see/do. Like resources, rights are just an arbitrary label, so developers can call it whatever they want. The naming is less important than understanding there is a relationship between resources and rights (resources have rights).
+Rights can be thought of as actions, permissions, features, etc. Rights often represent what a user can or can't see/do. Like resources, rights are just an arbitrary label, so it can be named any way you want. The naming is less important than understanding there is a relationship between resources and rights (resources have rights).
 
 _Creating a single resource:_
 
 ```javascript
+// IAM.createResource('resource', rights)
 IAM.createResource('admin portal', ['view', 'manage'])
 ```
 
