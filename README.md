@@ -30,7 +30,7 @@ a global browser namespace.
 
 **See source code for additional inline documentation.**
 
-## General Premise
+## Designing Your Security System
 
 **Resources** are arbitrary names associated with an application, such as `admin portal`, `user settings`, or an any other component of a system where access should be controlled.
 
