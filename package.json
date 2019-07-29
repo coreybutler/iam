@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "rollup -c && tap -R spec ./test/**/*.js && standard --verbose | snazzy"
+    "test": "tap -R spec ./test/**/*.js",
+    "test:syntax": "standard --verbose | snazzy"
   },
   "keywords": [
     "iam",

@@ -1,17 +1,22 @@
 @import url('https://fonts.googleapis.com/css?family=Lato&display=swap');
 
 body {
+  padding: 0;
+  margin: 0;
   font-family: Lato, Consolas, Arial, sans-serif;
 }
 
 header {
   display: flex;
+  padding: 1.68rem;
+  background-color: #336699;
 }
 
 nav a {
   font-weight: 900;
   color: navy;
   opacity: .75;
+  color: #fff;
 }
 
 nav a.selected {

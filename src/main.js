@@ -19,6 +19,18 @@ class Manager {
   #groupMap = new Map()
   #users = new Set()
 
+  #forceArray = function () {
+    if (arguments.length > 1) {
+      return Array.from(arguments)
+    }
+
+    if (!Array.isArray(arguments[0])) {
+      return [arguments[0]]
+    }
+
+    return arguments[0]
+  }
+
   constructor () {
     Object.defineProperties(this, {
       getRoleRights: {
@@ -201,7 +213,6 @@ class Manager {
 
     this.reset()
 
-    console.error(cfg)
     // Load resources first
     if (cfg.hasOwnProperty('resources')) {
       Object.keys(cfg.resources).forEach(resource => {
@@ -355,7 +366,7 @@ class Manager {
       }
 
       let permissions = Array.from(rights[resource]).map(right => {
-        let perm = new Right(typeof right === 'object' ? (right.right || right.name) : right)
+        let perm = new Right(typeof right === 'object' ? (right.right || right.name) : this.#forceArray(right))
 
         if (typeof right === 'object' && right.hasOwnProperty('description')) {
           perm.description = right.description

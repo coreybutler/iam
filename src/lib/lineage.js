@@ -76,7 +76,7 @@ export default class Lineage {
       }
 
       return `${item} (right)`
-    }).join(' --> ')
+    }).join(' <-- ')
   }
 
   get group () {

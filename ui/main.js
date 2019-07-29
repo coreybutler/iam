@@ -13,22 +13,62 @@ Array.from(document.querySelectorAll('header > nav > a')).forEach(navlink => {
   })
 })
 
-// 1. Identify Resources: resource name / actions & features
-IAM.createResource('admin portal', ['view', 'manage'])
+// 1. Load data from localstorage
+let cfg = localStorage.getItem('tmp.iam.cfg')
 
-// Multiple resource registration
+try {
+  cfg = JSON.parse(cfg)
+  IAM.load(cfg)
+} catch (e) {}
+
+// 2. Load system resources
+let system_resources = document.querySelector('#resources')
+let resource_rights = document.querySelector('#resource_rights')
+
+IAM.resources.forEach(resource => system_resources.insertAdjacentHTML('beforeend', `<option value="${resource.name}">${resource.name}</option>`))
+
+system_resources.addEventListener('change', evt => {
+  resource_rights.innerHTML = ''
+
+  IAM.getResource(evt.target.selectedOptions[0].value).rights.forEach(right => {
+    resource_rights.insertAdjacentHTML('beforeend', `<option value="${right.name}">${right.name}</option>`)
+  })
+})
+
+// 3. Load roles
+let roles = document.querySelector('#role')
+let role_resources = document.querySelector('#role_resources')
+let role_resource_rights = document.querySelector('#role_resource_rights')
+
+IAM.roles.forEach(role => roles.insertAdjacentHTML('beforeend', `<option value="${role.name}">${role.name}</option>`))
+
+roles.addEventListener('change', evt => {
+  role_resources.innerHTML = ''
+  let role = IAM.getRole(evt.target.selectedOptions[0].value)
+
+  role.resources.forEach((resource, label) => {
+console.log(label, resource)
+    role_resources.insertAdjacentHTML('beforeend', `<option value="${label}">${label}</option>`)
+  })
+})
+
+// 1. Identify Resources: resource name / actions & features
+IAM.reset()
+IAM.createResource('admin portal', ['view', 'manage'])
+//
+// // Multiple resource registration
 IAM.createResource({
   settings: ['view', 'manage', 'admin'],
   profile: ['view', 'manage', 'admin'],
   'super secret section': ['admin']
 })
-
-// Data
-console.warn('RESOURCES:')
-console.log(IAM.resources)
-console.log(IAM.resourceNames)
-
-// 2. Create authorization roles
+//
+// // Data
+// console.warn('RESOURCES:')
+// console.log(IAM.resources)
+// console.log(IAM.resourceNames)
+//
+// // 2. Create authorization roles
 IAM.createRole('admin', {
   'admin portal': ['allow:*']
 })
@@ -43,11 +83,11 @@ IAM.all({
   settings: '*',
   profile: ['view', 'manage']
 })
-
-console.warn('ROLES:')
-console.log(IAM.roles)
-console.log(IAM.roleNames)
-
+//
+// console.warn('ROLES:')
+// console.log(IAM.roles)
+// console.log(IAM.roleNames)
+//
 // 3. Authorize
 let user = new IAM.User('admin')
 user.name = 'Test User'
@@ -101,7 +141,7 @@ console.log('============')
 console.log(JSON.stringify(IAM.configuration))
 localStorage.setItem('tmp.iam.cfg', JSON.stringify(IAM.configuration))
 
-let cfg = localStorage.getItem('tmp.iam.cfg')
+
 
 console.log('Configuration Test')
 console.log('Before Reset', IAM.configuration)

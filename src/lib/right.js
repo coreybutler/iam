@@ -9,6 +9,14 @@ export default class Right {
   #description = null
 
   constructor (name) {
+    if (Array.isArray(name)) {
+      if (name.length > 1) {
+        throw new Error(`Cannot construct a new right using an existing right (${name.name})`)
+      }
+
+      name = name[0]
+    }
+
     if (typeof name !== 'string') {
       if (name instanceof Right) {
         throw new Error(`Cannot construct a new right using an existing right (${name.name})`)
@@ -22,13 +30,14 @@ export default class Right {
         if (name.hasOwnProperty('description')) {
           this.#description = name.description.trim()
         }
-console.error(name)
+
         if (name.hasOwnProperty('right')) {
           name = name.right
         } else {
           name = name.name
         }
       } else {
+console.log(name)
         throw new Error(`${typeof name} is an invalid right name.`)
       }
     }

@@ -125,7 +125,7 @@ export default class Group {
    * @chainable
    * @return {IAM.Group}
    */
-  addRole () {
+  assign () {
     Array.from(arguments).forEach(role => {
       if (IAM.roleExists(role)) {
         this.#roles.add(IAM.getRole(role).OID)
@@ -135,6 +135,11 @@ export default class Group {
     })
 
     return this
+  }
+
+  // alias
+  addRole () {
+    return this.assign(...arguments)
   }
 
   /**
@@ -211,8 +216,10 @@ export default class Group {
    * @return {IAM.Group}
    */
   clearMembers () {
-    this.#members = new Set()
     this.#members.forEach(user => user.removeMembership(this.#oid))
+    this.#members = new Set()
+
+    this.#subgroups.forEach(group => this.removeMember(group))
     return this
   }
 
@@ -277,9 +284,5 @@ export default class Group {
     }
 
     return data
-  }
-
-  lineage () {
-    return IAM.lineage.apply(this, arguments)
   }
 }
