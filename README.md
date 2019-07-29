@@ -34,11 +34,9 @@ a global browser namespace.
 
 **Resources** are arbitrary names associated with an application, such as `admin portal`, `user settings`, or an any other component of a system where access should be controlled.
 
-**Rights** are defined for each resource.
+**Rights** are defined for each resource. For example, the `admin portal` resource may have `view` and `manage` rights associated with it. Users who are granted `view` rights should be able to see the `admin portal`, while users with `manage` rights can do something in the admin portal. Users without either of these rights shouldn't see the admin portal at all.
 
-    For example, the `admin portal` resource may have `view` and `manage` rights associated with it. Users who are granted `view` rights should be able to see the `admin portal`, while users with `manage` rights can do something in the admin portal. Users without either of these rights shouldn't see the admin portal at all.
-
-To control access, developers create **roles** and assign them to **users**. A role is assigned rights to specific resources. Users can then be assigned to roles.
+To grant/revoke access, developers create **roles** and assign them to **users** or **groups** of users. A role is assigned rights of specific resources. Users and groups can then be assigned to these roles.
 
 **Groups** can be assigned users, roles, and even other groups. Groups allow developers to define simple or complex permission hierarchies.
 
