@@ -406,7 +406,7 @@ console.log(user.trace('admin portal', 'view'))
 
 The console output would look like:
 
-```json
+```javascript
 {
   "display": "superadmin (group) <-- admin (subgroup) <-- partialadmin (subgroup) <-- administrator (role) <-- * (right to view)"
   "governedBy": {
