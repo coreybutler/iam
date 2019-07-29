@@ -2,9 +2,9 @@
 _(For the browser and Node.js)_
 
 This library manages roles and permissions, allowing developers to create
-simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library, it is capable of automatically deriving permissions, even in complex schemas.
+simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library (internally), it is capable of automatically deriving user rights, even in complex schemas.
 
-Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation. In other words, the **code should reflect the answer to a simple question: "is the user authorized to use a specific resource?"**.
+Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation. In other words, the **code should reflect the answer to a simple question**: _"is the user authorized to use a specific resource?"_.
 
 **The goal:**
 
@@ -18,7 +18,7 @@ if (user.authorized('system resource', 'view')) {
 
 **Abstracting complexity:**
 
-Issues and confusion with authorization commonly occur when the conditional logic is complicated. Consider the following: "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present...".
+Issues and confusion with authorization commonly occur when the conditional logic is too complicated. Consider the following: "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present...".
 
 Just like proper sentences, _code shouldn't have "run on" logic_.
 
