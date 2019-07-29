@@ -1,19 +1,36 @@
 # IAM
 
-An identification and authorization manager for the browser and Node.js.
+An **I**dentification and **A**uthorization **M**anager for the browser and Node.js.
+
 This library manages roles and permissions, allowing developers to create
-simple or complex authorization patterns.
+simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library, it is capable of automatically deriving permissions, even in complex schemas.
+
+Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation. In other words, the **code should reflect the answer to a simple question: "is the user authorized to use a specific resource?"**.
+
+**The goal:**
+
+```javascript
+if (user.authorized('system resource', 'view')) {
+  display()
+} else {
+  throw new Error('Access Denied')
+}
+```
+
+**Abstracting complexity:**
+
+Issues with authorization occur when the question is complicated. Consider the following: "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present...".
+
+Just like proper sentences, _code shouldn't have "run on" logic_.
+
+---
 
 This is available as a commonJS node module, an importable ES Module, or
 a global browser namespace.
 
-**Additional inline documentation is available.**
+**See source code for additional inline documentation.**
 
 ## General Premise
-
-Checking whether a user is authorized to view/use a specific feature of an application should always be a binary operation. In other words, the code should reflect a simple answer to the question of "is the user authorized to use a specific resource". It should _not_ reflect a more complicated question, such as "is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature...". Just like writing sentences, code shouldn't have "run on" logic.
-
-This library keeps track of resources, rights, roles, and groups. By maintaining the permission structure internally, it automatically derives permissions, even in complex schemas.
 
 **Resources** are arbitrary names associated with an application, such as `admin portal`, `user settings`, or an any other component of a system where access should be controlled. Developers can also associate **rights** with each of these resources.
 
