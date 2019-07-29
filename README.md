@@ -171,7 +171,7 @@ IAM.createRole('basic user', {
 
 _FORCIBLY ALLOW rights:_
 
-There are circumstances where a user may belong to more than one role, where one role denies a right and another allows it. For example, all users may be denied access to administration tool, but admins should be granted access to the tool. In this case, the admin rights must override the denied rights. This is accomplished by prefixing a right with the `allow:` prefix.
+There are circumstances where a user may belong to more than one role or group, where one role denies a right and another allows it. For example, users may be denied access to an administration tool by default, but admins should be granted special access to the tool. In this case, the admin rights must override the denied rights. This is accomplished by prefixing a right with the `allow:` prefix.
 
 ```javascript
 IAM.createRole('basic user', {
@@ -185,14 +185,15 @@ IAM.createRole('superuser', {
 
 If a user was assigned to both the `basic user` _and_ `superuser` roles, the user would be granted all permissions to the admin portal because the `allow:*` right of the "superuser" role supercedes the `deny:*` right of the "basic user" role.
 
-ALLOW RIGHTS ALWAYS SUPERCEDE DENIED RIGHTS. ALWAYS.
+**ALLOW RIGHTS ALWAYS SUPERCEDE DENIED RIGHTS. ALWAYS.**
 
 _Applying rights to everyone:_
 
-There is a private/hidden role called `everyone` that is automatically assigned to all users. This reserved word can be used to assign permissions for all users of a system. To simplify, a special `all` method is available for configuring rights that apply to all users.
+There is a private/hidden role produced by IAM, called `everyone`. This role is always assigned to all users. It is used to assign permissions which are applicable to every user of the system. A special `all()` method simplifies the process of assigning rights to everyone.
 
 ```javascript
 IAM.all({
+  'resource': 'right',
   'admin portal': 'deny:*',
   'user portal': 'view', // A single string is valid
   'tool': ['view'] // Arrays are also valid.
@@ -388,7 +389,8 @@ IAM.getGroup('admin').addMember('partialadmin')
 IAM.getGroup('superadmin').addMember('admin')
 
 // Create a user
-let user = new IAM.User('John Doe')
+let user = new IAM.User()
+user.name = 'John Doe' // Optional "nicety" for reporting purposes.
 
 // Add the user to the superadmin group.
 user.join('superadmin')
