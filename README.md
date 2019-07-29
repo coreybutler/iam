@@ -1,6 +1,6 @@
 # IAM
 
-A identification and authorization manager for the browser and Node.js.
+An identification and authorization manager for the browser and Node.js.
 This library manages roles and permissions, allowing developers to create
 simple or complex authorization patterns.
 
