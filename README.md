@@ -169,7 +169,7 @@ IAM.createRole('basic user', {
 })
 ```
 
-_FORCE ALLOW rights:_
+_FORCIBLY ALLOW rights:_
 
 There are circumstances where a user may belong to more than one role, where one role denies a right and another allows it. For example, all users may be denied access to administration tool, but admins should be granted access to the tool. In this case, the admin rights must override the denied rights. This is accomplished by prefixing a right with the `allow:` prefix.
 
