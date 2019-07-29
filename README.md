@@ -276,8 +276,7 @@ See the group section below.
 Groups are a simple but powerful organizational container. Groups have two types of members: users
 and other groups.
 
-Roles are assigned to groups, applying the permissions to all members of the group. For example, a user who is a member of the "admin" group will receive all of the same roles/privileges
-assigned to the group.
+Roles are assigned to groups, applying the permissions to all members of the group. For example, a user who is a member of the "admin" group will receive all of the same roles/privileges assigned to the "admin" group.
 
 Users inherit permissions from the groups they are a part of, but groups inherit permissions from the groups within them. For example, a group called "superadmin" contains a group called "admin". The "superadmin" group inherits all privileges from the "admin" group. This is a "reverse" cascade hierarchy, which allows privileges to be "rolled up" into higher order groups.
 
@@ -343,14 +342,14 @@ let group = new IAM.Group('admin')
 let supergroup = new IAM.Group('superadmin')
 
 // Groups can be added by IAM.Group object or by name
-group.addMember(group)
+supergroup.addMember(group)
 // or
-group.addMember('admin')
+supergroup.addMember('admin')
 
 // Groups can be removed by IAM.Group object or by name
-group.removeMember(group)
+supergroup.removeMember(group)
 // or
-group.removeMember('admin')
+supergroup.removeMember('admin')
 ```
 
 ## Tracing Permission Lineage
