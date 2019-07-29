@@ -128,13 +128,17 @@ console.log(IAM.resources)
 
 ### Roles
 
-Roles are used to map system resources/rights to users. A role consists of resources and which rights should be enforced.
+Roles are used to map system resources/rights to users. A role consists of resources and which rights of the resource should be enforced.
 
 _Creating a role:_
 
 The example below creates a simple administrative role called "admin". This role grants `view` and `manage` **rights** on the admin portal **resource**.
 
 ```javascript
+// IAM.createRole('role name', {
+//   'resource': rights
+// })
+
 IAM.createRole('admin', {
   'admin portal': ['view', 'manage']
 })
