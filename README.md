@@ -408,17 +408,17 @@ The console output would look like:
 
 ```json
 {
-  display: "superadmin (group) <-- admin (subgroup) <-- partialadmin (subgroup) <-- administrator (role) <-- * (right to view)"
-  governedBy: {
-    group: Group {#oid: Symbol(superadmin group),…}
-    right: Right {#oid: Symbol(allow:* right),…},
-    role: Role {#oid: Symbol(admin role), …}
+  "display": "superadmin (group) <-- admin (subgroup) <-- partialadmin (subgroup) <-- administrator (role) <-- * (right to view)"
+  "governedBy": {
+    "group": Group {#oid: Symbol(superadmin group),…}
+    "right": Right {#oid: Symbol(allow:* right),…},
+    "role": Role {#oid: Symbol(admin role), …}
   },
-  granted: true
-  resource: Resource {#oid: Symbol(admin portal resource),…},
-  right: "view",
-  stack: (5) [Group, Group, Group, Role, Right],
-  type: "role"
+  "granted": true
+  "resource": Resource {#oid: Symbol(admin portal resource),…},
+  "right": "view",
+  "stack": (5) [Group, Group, Group, Role, Right],
+  "type": "role"
 }
 ```
 
