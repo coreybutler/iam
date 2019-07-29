@@ -18,9 +18,11 @@ if (user.authorized('system resource', 'view')) {
 
 **Abstracting complexity:**
 
-Issues and confusion with authorization commonly occur when the conditional logic is too complicated. Consider the following: "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present...". You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not.
+Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
 
-Just like proper sentences, _code shouldn't have "run on" logic_. IAM abstracts this complexity.
+Consider the following logic: "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present?"
+
+Just like proper sentences, _code shouldn't have "run on" logic_. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
 
 ---
 
