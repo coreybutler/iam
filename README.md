@@ -305,11 +305,11 @@ Descriptions are optional.
 _Assigning roles/privileges to a group:_
 
 ```javascript
-group.addRole('roleA', 'roleB')
+group.assign('roleA', 'roleB')
 
 let roleC = IAM.createRole('roleC', {...})
 
-group.addRole(roleC)
+group.assign(roleC)
 ```
 
 It is possible to assign one or more roles at the same time. A role must be the unique name (string) of an existing role or the actual `IAM.Role` object.
@@ -317,10 +317,10 @@ It is possible to assign one or more roles at the same time. A role must be the 
 _Removing roles/privileges from a group:_
 
 ```javascript
-group.removeRole('roleA', roleC)
+group.revoke('roleA', roleC)
 ```
 
-Similar to adding a role, supply one or more existing role name/`IAM.Role` objects to the `removeRole` method.
+Similar to adding a role, supply one or more existing role name/`IAM.Role` objects to the `revoke` method.
 
 _Removing all roles from a group:_
 

@@ -139,6 +139,7 @@ export default class Group {
 
   // alias
   addRole () {
+    console.log('IAM.Group.addRole() is deprecated. Use IAM.Group.assign() instead.')
     return this.assign(...arguments)
   }
 
@@ -149,10 +150,15 @@ export default class Group {
    * @chainable
    * @return {IAM.Group}
    */
-  removeRole () {
+  revoke () {
     Array.from(arguments).forEach(role => this.#roles.delete(IAM.getRole(role).OID))
 
     return this
+  }
+
+  removeRole () {
+    console.log('IAM.Group.removeRole() is deprecated. Use IAM.Group.revoke() instead.')
+    return this.revoke(...arguments)
   }
 
   /**
