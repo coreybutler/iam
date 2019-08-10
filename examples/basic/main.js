@@ -1,4 +1,5 @@
-import IAM from 'https://cdn.jsdelivr.net/npm/@butlerlogic/iam@1.0.0-beta5/src/main.js'
+// import IAM from 'https://cdn.jsdelivr.net/npm/@butlerlogic/iam@1.0.0-beta5/src/main.js'
+import IAM from '../../src/main.js'
 
 // Define the system components
 IAM.createResource({

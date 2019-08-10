@@ -125,15 +125,17 @@ export default class User {
     let rights = new Map()
 
     for (let role of roles) {
-      role.resources.forEach((acl, resource) => {
-        data.set(resource, new Set())
-        rights.set(resource, new Set([...(rights.get(resource) || []), ...acl]))
-      })
+      if (this.of(role.name)) {
+        role.resources.forEach((acl, resource) => {
+          data.set(resource, new Set())
+          rights.set(resource, new Set([...(rights.get(resource) || []), ...acl]))
+        })
+      }
     }
 
     for (let [resource, acl] of rights) {
       for (let right of acl) {
-        let permissions = right.all ? Array.from(IAM.getResource(resource).rights.keys()) : [right.name]
+        let permissions = right.all ? Array.from(IAM.getResource(resource).rights.keys()) : [`${!right.allowed ? 'deny:' : ''}${right.name}`]
 
         if (right.allowed) {
           data.set(resource, new Set([...data.get(resource), ...permissions]))

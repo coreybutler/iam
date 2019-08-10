@@ -37,7 +37,6 @@ export default class Right {
           name = name.name
         }
       } else {
-console.log(name)
         throw new Error(`${typeof name} is an invalid right name.`)
       }
     }
