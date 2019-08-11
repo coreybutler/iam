@@ -37,7 +37,6 @@ export default class Right {
           name = name.name
         }
       } else {
-console.log(name)
         throw new Error(`${typeof name} is an invalid right name.`)
       }
     }
@@ -93,7 +92,7 @@ console.log(name)
     this.#description = value.trim()
   }
 
-  get force () {
+  get forced () {
     return this.#overridable
   }
 
@@ -122,6 +121,6 @@ console.log(name)
       return true
     }
 
-    return this.#name === name
+    return this.#name.trim() === name.trim()
   }
 }

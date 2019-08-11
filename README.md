@@ -354,11 +354,11 @@ supergroup.removeMember('admin')
 
 ## Tracing Permission Lineage
 
-There are situations when it is useful to know how/why a privilege was assigned to a user. For example, it's not uncommon to ask questions like "why does/n't John Doe have permission to the administration section?". The lineage system is designed to trace a permission back to the authorization source.
+There are situations when it is useful to know how/why a privilege was assigned to a user. For example, it's not uncommon to ask questions like "why does/n't John Doe have permission to the administration section?". The lineage system is designed to trace a permission back to the authorization source. In other words, it helps identify which group, role, or inheritance pattern ultimately granted/denied access to a resource.
 
 The `IAM.Group` and `IAM.User` objects both contain a `trace()` method for this. This method requires two arguments: `resource` (string/`IAM.Resource`) and `right` (string/`IAM.Right`).
 
-Consider the following, where a system resource called `admin portal` exists, but everyone is denied access by default. A special role called `administrator` is created, which grants access to the `admin portal` resource. Using this structure, only members of the `administrator` role should have access to the `admin portal` resource.
+Consider the following, where a system resource called `admin portal` exists, but everyone is denied access by default. A role called `administrator` is created, which grants access to the `admin portal` resource. Using this structure, only members of the `administrator` role should have access to the `admin portal` resource.
 
 ```javascript
 // Create a system resource and rights.
@@ -376,7 +376,7 @@ IAM.createRole('administrator', {
   'admin portal': 'allow:*'
 })
 
-// Create some administration groups
+// Create some groups for organizing administrative users.
 IAM.createGroup('partialadmin', 'admin', 'superadmin')
 
 // Assign the administrator role to the partialadmin group.
@@ -384,6 +384,9 @@ IAM.getGroup('partialadmin').assign('administrator')
 
 // Add the partialadmin group to the admin group,
 // and add the admin group to the superadmin group.
+// This is the equivalent of saying "the partialadmin
+// group belongs to the admin group, and the admin group
+// belongs to the superadmin group".
 IAM.getGroup('admin').addMember('partialadmin')
 IAM.getGroup('superadmin').addMember('admin')
 
@@ -408,7 +411,8 @@ The console output would look like:
 
 ```javascript
 {
-  "display": "superadmin (group) <-- admin (subgroup) <-- partialadmin (subgroup) <-- administrator (role) <-- * (right to view)"
+  "display": "superadmin (group) <-- admin (subgroup) <-- partialadmin (subgroup) <-- administrator (role) <-- * (right to view)",
+  "description": ""The \"view\" right on the \"admin portal\" resource is granted by the \"admin\" role, which is assigned to the \"subadmin\" group, which is a member of the \"admin\" group, which the user is a member of.\"",
   "governedBy": {
     "group": Group {#oid: Symbol(superadmin group),…},
     "right": Right {#oid: Symbol(allow:* right),…},

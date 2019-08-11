@@ -125,15 +125,17 @@ export default class User {
     let rights = new Map()
 
     for (let role of roles) {
-      role.resources.forEach((acl, resource) => {
-        data.set(resource, new Set())
-        rights.set(resource, new Set([...(rights.get(resource) || []), ...acl]))
-      })
+      if (this.of(role.name)) {
+        role.resources.forEach((acl, resource) => {
+          data.set(resource, new Set())
+          rights.set(resource, new Set([...(rights.get(resource) || []), ...acl]))
+        })
+      }
     }
 
     for (let [resource, acl] of rights) {
       for (let right of acl) {
-        let permissions = right.all ? Array.from(IAM.getResource(resource).rights.keys()) : [right.name]
+        let permissions = right.all ? Array.from(IAM.getResource(resource).rights.keys()) : [`${!right.allowed ? 'deny:' : ''}${right.name}`]
 
         if (right.allowed) {
           data.set(resource, new Set([...data.get(resource), ...permissions]))
@@ -343,23 +345,26 @@ export default class User {
 
       if (permissions) {
         for (let permission of permissions) {
-          if (permission.forced) {
-            data.role = role
-            data.allow(true)
-            data.stack = [role, permission]
-            return data
-          } else if (permission.denied) {
-            data.role = role
-            data.deny()
-            data.stack = [role, permission]
-          } else if (permission.is(right) && !data.hasRole) {
-            data.role = role
-            data.allow()
-            data.stack = [role, permission]
+          if (permission.is(right)) {
+            if (permission.forced) {
+              data.role = role
+              data.allow(true)
+              data.stack = [role, permission]
+              return data
+            } else if (permission.denied) {
+              data.role = role
+              data.deny()
+              data.stack = [role, permission]
+            } else if (permission.is(right) && !data.hasRole) {
+              data.role = role
+              data.allow()
+              data.stack = [role, permission]
+            }
           }
         }
       }
     }
+
 
     // Get roles assigned to the user via a group
     for (let group of this.#memberOf) {
@@ -385,7 +390,7 @@ export default class User {
       }
     }
 
-    return data.empty ? null : data
+    return data
   }
 
   /**

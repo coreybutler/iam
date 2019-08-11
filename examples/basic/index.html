@@ -1,0 +1,96 @@
+<!DOCTYPE html5/>
+<html>
+  <head>
+    <title>Basic IAM Usage</title>
+    <link rel="stylesheet" href="./main.css"/>
+    <link href="https://fonts.googleapis.com/css?family=Fira+Code|Lato&display=swap" rel="stylesheet">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <script src="https://cdn.jsdelivr.net/npm/@author.io/element-base@1.1.4/dist/author-base.min.js" integrity="sha256-88Leq5wvtM3smxNDd5ep54Itg4sh2nKRHWoOwrYu4hk=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@author.io/element-cycle@1.0.4/dist/author-cycle.min.js" integrity="sha256-w25QeUlPXWYd/Hhv7aLGw8nDd8btynTqZjDju+6EuC0=" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <header>
+      <a href="" id="home">Home</a>
+      <a href="" id="blog">Blog</a>
+      <a href="" id="editor">Editor</a>
+      <select name="user"></select>
+    </header>
+    <main>
+      <author-cycle>
+        <section class="home" selected>
+          <div class="resources">
+            <h1>System Resources</h1>
+            <table>
+              <thead>
+                <tr>
+                  <td>Component</td>
+                  <td>Associated Rights</td>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="roles">
+            <h1>Roles</h1>
+            <table>
+              <thead>
+                <tr>
+                  <td>Role</td>
+                  <td>Permissions</td>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="groups">
+            <h1>Groups</h1>
+            <table>
+              <thead>
+                <tr>
+                  <td>Group</td>
+                  <td>Roles</td>
+                  <td>Members</td>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div>
+            <h1>Active User</h1>
+            <div class="code">
+              <code></code>
+            </div>
+          </div>
+        </section>
+        <section class="blog">
+          <h1>Blog</h1>
+          <article>
+            <h1>Version 2.0.0 Released</h1>
+            <p>A new version is available!</p>
+            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
+          </article>
+          <article>
+            <h1>Welcome to AwesomeApp</h1>
+            <p>Thanks for joining us as we roll out version 1.0.0.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          </article>
+        </section>
+        <section class="editor">
+          <h1>Editor</h1>
+          <form>
+            <div>
+              <label for="title">New Article Title</label>
+              <input type="text" name="title" placeholder="Article Title">
+            </div>
+            <div>
+              <label for="article">Content</label>
+              <textarea name="article" rows="8" cols="80" placeholder="Write something awesome here."></textarea>
+            </div>
+            <button>Post Article</button>
+          </form>
+        </section>
+      </author-cycle>
+    </main>
+    <script src="./main.js" type="module"></script>
+  </body>
+</html>
