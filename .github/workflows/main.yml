@@ -2,7 +2,8 @@ name: Autorelease
 
 on:
   push:
-    - master
+    branches:
+     - master
 
 jobs:
   autotag:
