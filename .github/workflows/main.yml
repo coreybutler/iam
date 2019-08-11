@@ -11,6 +11,6 @@ jobs:
     
     steps:
     - name: Automatically tag new versions.
-      uses: author/action-autotag@1.0.1
+      uses: author/action-autotag@1.0.2-beta1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
