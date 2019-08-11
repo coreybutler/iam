@@ -18,8 +18,6 @@ export default class Group {
     this.#name = name
     this.#oid = Symbol(`${this.#name} group`)
 
-    IAM.registerGroup(this)
-
     Object.defineProperties(this, {
       addParentGroup: {
         enumerable: false,
@@ -62,6 +60,8 @@ export default class Group {
         }
       }
     })
+
+    IAM.registerGroup(this)
   }
 
   /**
@@ -81,13 +81,75 @@ export default class Group {
   }
 
   /**
+   * @property {arry}
+   * An array of IAM.User and/or IAM.Group objects
+   * whom are members of the group.
+   */
+  get members () {
+    return Array.from(this.#subgroups).map(group => IAM.getGroup(group)).concat(Array.from(this.#members))
+  }
+
+  /**
+   * @property {string[]}
+   * An array of strings where each string represents the name of a user or group
+   * whom is a member of the group.
+   */
+  get memberlist () {
+    return this.members.map(member => member.name)
+  }
+
+  /**
+   * @property {IAM.User[]}
+   * An array of IAM.User objects where each user represents a member of the group.
+   * This does not include groups. Use #members for a full list, or #subgroups for
+   * a list of groups whom are members of the group.
+   */
+  get users () {
+    return Array.from(this.#members)
+  }
+
+  /**
+   * @property {string[]}
+   * An array of user names where each represents a member of the group.
+   * This does not include groups. Use #memberlist for a full list, or
+   * #subgrouplist for a list of groups whom are members of the group.
+   */
+  get userlist () {
+    return Array.from(this.#members).map(user => user.name)
+  }
+
+  /**
+   * @property {IAM.Group[]}
+   * An array of IAM.Group objects whom this group inherits rights/roles from.
+   * These "sub" groups are considered members of the group.
+   */
+  get subgroups () {
+    return Array.from(this.#subgroups).map(group => IAM.getGroup(group))
+  }
+
+  /**
+   * @property {string[]}
+   * An array of group names whom this group inherits rights/roles from.
+   * These "sub" groups are considered members of the group.
+   */
+  get subgrouplist () {
+    return Array.from(this.#subgroups).map(group => IAM.getGroup(group).name)
+  }
+
+  /**
    * @property {IAM.Role[]} roles
    * Contains all of the roles assigned to the group.
    * Each element of the response is a IAM.Role Object.
    */
   get roles () {
-    let roles = this.permissions
+    return Array.from(this.permissions).map(oid => IAM.getRole(oid))
+  }
 
+  /**
+   * @property {string[]}
+   * Contains all of the role names assigned to the group.
+   */
+  get roleList () {
     return Array.from(this.permissions).map(oid => IAM.getRole(oid).name)
   }
 
@@ -109,6 +171,20 @@ export default class Group {
     return roles
   }
 
+  /**
+   * @property {object}
+   * Contains the group data. This can be used to save the group configuration
+   * or for reporting purposes.
+   *
+   * ```
+   * {
+   *   "name": "string",
+   *   "memberOf": ["groupNameA", "groupNameB"],
+   *   "members": ["User Name A", 'User Name B'],
+   *   "roles": ["Role Name A", "Role Name B"]
+   * }
+   * ```
+   */
   get data () {
     return {
       name: this.#name,
@@ -248,19 +324,21 @@ export default class Group {
 
       if (permissions) {
         for (let permission of permissions) {
-          if (permission.forced) {
-            data.allow(true)
-            data.role = role
-            data.stack = [this, role, permission]
-            return data
-          } else if (permission.deined) {
-            data.role = role
-            data.deny()
-            data.stack = [this, role, permission]
-          } else if (permission.is(right) && !data.hasOwnProperty('role')) {
-            data.role = role
-            data.allow()
-            data.stack = [this, role, permission]
+          if (permission.is(right)) {
+            if (permission.forced) {
+              data.allow(true)
+              data.role = role
+              data.stack = [this, role, permission]
+              return data
+            } else if (permission.deined) {
+              data.role = role
+              data.deny()
+              data.stack = [this, role, permission]
+            } else if (permission.is(right) && !data.hasOwnProperty('role')) {
+              data.role = role
+              data.allow()
+              data.stack = [this, role, permission]
+            }
           }
         }
       }

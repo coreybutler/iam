@@ -18,12 +18,52 @@
     <main>
       <author-cycle>
         <section class="home" selected>
-          <p>Personal Dashboard</p>
-          <div class="code">
-            <code></code>
+          <div class="resources">
+            <h1>System Resources</h1>
+            <table>
+              <thead>
+                <tr>
+                  <td>Component</td>
+                  <td>Associated Rights</td>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="roles">
+            <h1>Roles</h1>
+            <table>
+              <thead>
+                <tr>
+                  <td>Role</td>
+                  <td>Permissions</td>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="groups">
+            <h1>Groups</h1>
+            <table>
+              <thead>
+                <tr>
+                  <td>Group</td>
+                  <td>Roles</td>
+                  <td>Members</td>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div>
+            <h1>Active User</h1>
+            <div class="code">
+              <code></code>
+            </div>
           </div>
         </section>
         <section class="blog">
+          <h1>Blog</h1>
           <article>
             <h1>Version 2.0.0 Released</h1>
             <p>A new version is available!</p>
@@ -36,6 +76,7 @@
           </article>
         </section>
         <section class="editor">
+          <h1>Editor</h1>
           <form>
             <div>
               <label for="title">New Article Title</label>
@@ -43,7 +84,7 @@
             </div>
             <div>
               <label for="article">Content</label>
-              <textarea name="article" rows="8" cols="80"></textarea>
+              <textarea name="article" rows="8" cols="80" placeholder="Write something awesome here."></textarea>
             </div>
             <button>Post Article</button>
           </form>

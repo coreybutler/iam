@@ -345,23 +345,26 @@ export default class User {
 
       if (permissions) {
         for (let permission of permissions) {
-          if (permission.forced) {
-            data.role = role
-            data.allow(true)
-            data.stack = [role, permission]
-            return data
-          } else if (permission.denied) {
-            data.role = role
-            data.deny()
-            data.stack = [role, permission]
-          } else if (permission.is(right) && !data.hasRole) {
-            data.role = role
-            data.allow()
-            data.stack = [role, permission]
+          if (permission.is(right)) {
+            if (permission.forced) {
+              data.role = role
+              data.allow(true)
+              data.stack = [role, permission]
+              return data
+            } else if (permission.denied) {
+              data.role = role
+              data.deny()
+              data.stack = [role, permission]
+            } else if (permission.is(right) && !data.hasRole) {
+              data.role = role
+              data.allow()
+              data.stack = [role, permission]
+            }
           }
         }
       }
     }
+
 
     // Get roles assigned to the user via a group
     for (let group of this.#memberOf) {
@@ -387,7 +390,7 @@ export default class User {
       }
     }
 
-    return data.empty ? null : data
+    return data
   }
 
   /**

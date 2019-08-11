@@ -92,7 +92,7 @@ export default class Right {
     this.#description = value.trim()
   }
 
-  get force () {
+  get forced () {
     return this.#overridable
   }
 
@@ -121,6 +121,6 @@ export default class Right {
       return true
     }
 
-    return this.#name === name
+    return this.#name.trim() === name.trim()
   }
 }

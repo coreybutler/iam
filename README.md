@@ -411,7 +411,8 @@ The console output would look like:
 
 ```javascript
 {
-  "display": "superadmin (group) <-- admin (subgroup) <-- partialadmin (subgroup) <-- administrator (role) <-- * (right to view)"
+  "display": "superadmin (group) <-- admin (subgroup) <-- partialadmin (subgroup) <-- administrator (role) <-- * (right to view)",
+  "description": ""The \"view\" right on the \"admin portal\" resource is granted by the \"admin\" role, which is assigned to the \"subadmin\" group, which is a member of the \"admin\" group, which the user is a member of.\"",
   "governedBy": {
     "group": Group {#oid: Symbol(superadmin group),…},
     "right": Right {#oid: Symbol(allow:* right),…},

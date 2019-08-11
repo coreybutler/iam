@@ -23,22 +23,34 @@ IAM.createRole('administrator_role', {
 let basicUser = new IAM.User()
 
 // Optionally give the user a descriptive name.
-basicUser.name = 'John Doe (Basic)'
+basicUser.name = 'John Doe'
 
 // Create an admin user
 let adminUser = new IAM.User()
-adminUser.name = 'Almighty Blogmaster (Admin)'
+adminUser.name = 'Almighty Blogmaster'
 
 // Assign the admin user to the administrator role.
-adminUser.assign('administrator_role')
+// adminUser.assign('administrator_role')
 
 window.currentUser = basicUser
 
 // =============================================//
 
+// Groups
+let adminGroup = IAM.createGroup('administrator')
+let groups = IAM.createGroup('writer', 'reader')
+
+IAM.getGroup('writer').addMember('reader', 'administrator')
+
+adminGroup.assign('administrator_role')
+adminUser.join('administrator')
+
+// =============================================//
+
+// UI
 
 // Basic UI interaction
-const snippet = document.querySelector('.home code')
+const snippet = document.querySelector('.home code:last-of-type')
 const template = document.querySelector('author-cycle')
 const userList = document.querySelector('header > select[name="user"]')
 
@@ -49,6 +61,22 @@ document.querySelectorAll('header a').forEach(link => {
 
       let displaySection = evt.target.getAttribute('id')
 
+      let resource = displaySection !== 'home' ? 'blog' : 'home'
+      let permission = displaySection === 'editor' ? 'edit' : 'view'
+
+      if (!currentUser.authorized(resource, permission)) {
+        alert(`Sorry ${currentUser.name}, you aren't authorized to see that section.\n\n${currentUser.trace(resource, permission).description}`)
+        return
+      }
+
+      try {
+        console.log(`Checking if ${currentUser.name} has "${permission}" right on the "${resource}" resource.`)
+        console.log(currentUser.trace(resource, permission).description)
+      } catch (e) {
+        console.error(e)
+        console.log(resource, permission)
+        console.log(currentUser.trace(resource, permission))
+      }
 
       template.show(`.${displaySection}`)
     }
@@ -70,3 +98,28 @@ let userData = () => {
 }
 
 snippet.innerHTML = userData()
+
+const resourceTable = document.querySelector('.resources table')
+IAM.resources.forEach(resource => {
+  resourceTable.insertAdjacentHTML('beforeend', `<tr><td>${resource.name}</td><td>${resource.data.rights.join(', ')}</td></tr>`)
+})
+
+
+const roleTable = document.querySelector('.roles table tbody')
+IAM.roles.forEach(role => {
+  let rights = ''
+
+  role.rights.forEach((right, name) => {
+    right.forEach(privilege => {
+      rights += `<div class="permission_${privilege.allowed ? 'granted' : 'denied'}">${name}: ${privilege.allowed ? 'allowed' : 'denied'}</div>`
+    })
+  })
+
+  roleTable.insertAdjacentHTML('beforeend', `<tr><td class="role_${role.name}">${role.name}</td><td>${rights}</td></tr>`)
+})
+
+
+const groupTable = document.querySelector('.groups table tbody')
+IAM.groups.forEach(group => {
+  groupTable.insertAdjacentHTML('beforeend', `<tr><td>${group.name}</td><td>${group.roleList.join('<br/>')}</td><td>${group.members.map(m => m.name + (m instanceof IAM.Group ? ' (group)' : '')).join('<br/>')}</td></tr>`)
+})

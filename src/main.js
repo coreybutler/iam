@@ -163,7 +163,7 @@ class Manager {
    * @return {IAM.Group[]}
    */
   get groups () {
-    return Array.from(this.#groups.entries())
+    return Array.from(this.#groups.entries()).map(item => item[1])
   }
 
   /**
@@ -548,7 +548,7 @@ class Manager {
         let grp = this.#groups.get(group instanceof Group ? group.name : group)
 
         if (!grp) {
-          throw new Error(`Could not assign user to "${name}". The group is not recognized/registered with the IAM system.`)
+          throw new Error(`Could not assign user to "${group}". The group is not recognized/registered with the IAM system.`)
         }
 
         grp.addMember(user)
