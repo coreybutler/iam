@@ -1,10 +1,9 @@
 # IAM (Identification and Authorization Management)
 _(For the browser and Node.js)_
 
-This library manages roles and permissions, allowing developers to create
-simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library (internally), it is capable of automatically deriving user rights, even in complex schemas.
+This library manages roles and permissions, allowing developers to create simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library (internally), it is capable of automatically deriving user rights, even in complex schemas.
 
-Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation. In other words, the **code should reflect the answer to a simple question**: _"is the user authorized to use a specific resource?"_.
+**Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation.** In other words, the code should reflect the answer to a simple question: _"does the user have the right to do something with the system resource?"_.
 
 **The goal:**
 
@@ -16,18 +15,19 @@ if (user.authorized('system resource', 'view')) {
 }
 ```
 
-**Abstracting complexity:**
+## Abstracting complexity
 
 Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
 
-Consider the following logic: "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present?"
+**Consider the following logic:**
 
-Just like proper sentences, _code shouldn't have "run on" logic_. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
+> "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present?"
+
+Just like proper sentences, **code shouldn't have "run on" logic**. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
 
 ---
 
-This is available as a commonJS node module, an importable ES Module, or
-a global browser namespace.
+This is available as a commonJS node module, an importable ES Module, or a global browser namespace.
 
 **See source code for additional inline documentation.**
 
