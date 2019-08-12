@@ -11,3 +11,4 @@ jobs:
       uses: author/action-autotag@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ACTIONS_STEPS_DEBUG: true
