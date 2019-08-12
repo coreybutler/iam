@@ -21,7 +21,7 @@ Issues and confusion with authorization commonly occur when the conditional logi
 
 **Consider the following authorization question:**
 
-> "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides present?"
+> "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides to account for?"
 
 Just like proper sentences, **code shouldn't have "run on" logic**. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
 
@@ -30,6 +30,8 @@ Just like proper sentences, **code shouldn't have "run on" logic**. You shouldn'
 This is available as a commonJS node module, an importable ES Module, or a global browser namespace.
 
 **See source code for additional inline documentation.**
+
+---
 
 ## Designing Your Access Control System
 
