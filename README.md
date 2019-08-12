@@ -54,7 +54,7 @@ By using each of these major components (resources, rights, roles, users, groups
 
 ## Installation
 
-*Installing for Node.js*
+*Installing for Node.js (COMING SOON)*
 
 `npm install @butlerlogic/iam -S`
 
@@ -75,7 +75,7 @@ const iam = new IAM()
 </script>
 ```
 
-*Installing for the browser as a global namespace*
+*Installing for the browser as a global namespace (COMING SOON)*
 
 ```html
 <script src="https://some.cdn.com/iam"></script>
