@@ -1,5 +1,3 @@
-name: Autorelease
-
 on:
   push:
     branches:
@@ -7,10 +5,8 @@ on:
 
 jobs:
   autotag:
-    runs-on: ubuntu-latest
-    
     steps:
-    - name: Automatically tag new versions.
+    - name: "Autotag"
       uses: author/action-autotag@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
