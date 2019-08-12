@@ -435,9 +435,13 @@ The console output would look like:
 }
 ```
 
-The `display` object is the most descriptive. It can be read as "The user is a member of the superadmin group, which inherits rights of the admin group, which further inherits rights from the partialadmin group. The partialadmin group is assigned the administrator role, which grants all privileges, including the right to view the admin portal.".
+The `display` and `description` attributes are the most descriptive.
 
 In this case, the user is just part of a group that he probably shouldn't be a member of... so fixing it is a matter of removing the user from the group. The important part of this trace feature is _you didn't have to hunt through an entire application code base to find out which group_.
+
+Here is the actual output from the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic):
+
+![IAM Example Lineage](https://github.com/coreybutler/iam/raw/master/examples/IAM-lineage.png)
 
 The lineage/trace tool also supports explicitly denied rights (i.e. `deny:xxx`). It will return `null` if there is no lineage.
 
