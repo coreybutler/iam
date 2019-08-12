@@ -15,6 +15,13 @@ if (user.authorized('system resource', 'view')) {
 }
 ```
 
+**Demo UI**
+
+![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
+
+The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
+
+
 ## Abstracting complexity
 
 Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
