@@ -5,6 +5,7 @@ on:
 
 jobs:
   autotag:
+    runs-on: ubuntu-latest
     steps:
     - name: "Autotag"
       uses: author/action-autotag@master
