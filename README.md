@@ -61,7 +61,7 @@ By using each of these major components (resources, rights, roles, users, groups
 
 ## Installation
 
-### Installing for Node.js >=12
+### Installing for Node.js >=8
 
 `npm install @butlerlogic/iam -S`
 
@@ -69,8 +69,7 @@ By using each of these major components (resources, rights, roles, users, groups
 import IAM from '@butlerlogic/iam'
 ```
 
-_Remember_, modules in Node.js are experimental. To use them,
-you must set the `type` in the `package.json` file:
+_Remember_, to use modules in Node.js, the `type` attribute in `package.json` must be set to `"module"`:
 
 ```hcl
 {
@@ -78,9 +77,12 @@ you must set the `type` in the `package.json` file:
 }
 ```
 
-The script must be executed using the `--experimental-modules` flag:
+If you're running an older version of Node (<12.x.x), you may need to
+run Node with the `--experimental-modules` flag:
 
 `node --experimental-modules index.js`
+
+For more information, read the [ES Module Support Announcement](https://medium.com/@nodejs/announcing-a-new-experimental-modules-1be8d2d6c2ff).
 
 See the [api example](https://github.com/coreybutler/iam/tree/master/examples/api) for a working example.
 
