@@ -29,7 +29,7 @@ if (user.authorized('system resource', 'view')) {
 
 Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
 
-**Consider the following authorization question:**
+Consider the following authorization question:
 
 > "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides to account for?"
 
