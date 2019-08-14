@@ -15,6 +15,8 @@ if (user.authorized('system resource', 'view')) {
 }
 ```
 
+## [Enough talk, jump down to the code](#installation)
+
 ## Abstracting complexity
 
 Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
