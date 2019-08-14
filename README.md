@@ -15,35 +15,38 @@ if (user.authorized('system resource', 'view')) {
 }
 ```
 
+## Shortcuts
+
+- [Why? (Including Examples)](abstracting-complexity)
+- [Design Your Access Control System](#designing-your-access-control-system)
+- [API Docs](#installation)
+- [Tracing Permission Lineage](#tracing-permission-lineage)
+- [Access Control Philosophy](https://github.com/coreybutler/iam/wiki)
+
+---
+
 ## Abstracting complexity
 
 Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
 
-**Consider the following authorization question:**
+Consider the following authorization question:
 
 > "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides to account for?"
 
 Just like proper sentences, **code shouldn't have "run on" logic**. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
 
-**Demo UI**
+### Demo UI
 
 ![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
 
 The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
 
 
-**Demo API**
+### Demo API
 
 ![IAM Example API](https://github.com/coreybutler/iam/raw/master/examples/api/api_example.png)
 
 The code for this is available in the [api example](https://github.com/coreybutler/iam/tree/master/examples/api).
-
----
-
-This is available as an importable ES Module. If you're interested in a CommonJS version, or a version compatible with older browsers, post an issue.
-I plan to do this, but will prioritize efforts based on community demand.
-
-A guide and high level API documentation are below. **See the source code for additional inline documentation.**
 
 ---
 
@@ -59,9 +62,16 @@ To grant/revoke access, developers create **roles** and assign them to **users**
 
 By using each of these major components (resources, rights, roles, users, groups), the permission structure of your applications become significantly easier to manage. In turn, authorizing users becomes a trivial task with the `IAM.User` object. See examples in the usage section below.
 
+---
+
 ## Installation
 
-### Installing for Node.js >=8
+This is available as an importable ES Module. If you're interested in a CommonJS version, or a version compatible with older browsers, post an issue.
+I plan to do this, but will prioritize efforts based on community demand.
+
+A guide and high level API documentation are below. **See the source code for additional inline documentation.**
+
+### Installing for Node.js >=12
 
 `npm install @butlerlogic/iam -S`
 
@@ -95,6 +105,8 @@ See the [api example](https://github.com/coreybutler/iam/tree/master/examples/ap
   let user = new IAM.User('roleA', 'roleB')
 </script>
 ```
+
+---
 
 # API Usage (API)
 
@@ -372,6 +384,8 @@ supergroup.removeMember(group)
 // or
 supergroup.removeMember('admin')
 ```
+
+---
 
 # Tracing Permission Lineage
 
