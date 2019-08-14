@@ -35,14 +35,14 @@ Issues and confusion with authorization commonly occur when the conditional logi
 
 Just like proper sentences, **code shouldn't have "run on" logic**. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
 
-**Demo UI**
+### Demo UI
 
 ![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
 
 The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
 
 
-**Demo API**
+### Demo API
 
 ![IAM Example API](https://github.com/coreybutler/iam/raw/master/examples/api/api_example.png)
 
