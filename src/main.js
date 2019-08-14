@@ -19,6 +19,9 @@ class Manager {
   #groupMap = new Map()
   #users = new Set()
 
+  #userTTL = null
+  #trackUsers = true
+
   #forceArray = function () {
     if (arguments.length > 1) {
       return Array.from(arguments)
@@ -61,6 +64,14 @@ class Manager {
         configurable: false,
         writable: false,
         value: user => {
+          if (!this.#trackUsers) {
+            return
+          }
+
+          if (this.#userTTL !== null) {
+            user.setTTL(this.#userTTL)
+          }
+
           this.#users.add(Object.defineProperty({}, 'user', {
             get: () => user
           }))
@@ -95,8 +106,64 @@ class Manager {
         value: resource => {
           return this.#resources.get(resource) || []
         }
+      },
+
+      getUser: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: oid => {
+          for (let user in this.#users.entries()) {
+            if (user.user.OID === oid) {
+              return user
+            }
+          }
+        }
       }
     })
+  }
+
+  /**
+   * Set a default Time to Live for a user. After this time expires,
+   * IAM will forget/destroy the user. This can be used to clean up
+   * the IAM user registry. While not limited to API's, this can be
+   * very useful for managing access control in stateless/sessionless
+   * envrionments.
+   * @param  {number} value
+   */
+  set userTTL (value) {
+    if (value !== null && (typeof value !== 'number' || value <= 0)) {
+      throw new Error(`userTTL requires a number greater than 0. "${value}" is not a valid number.`)
+    }
+
+    this.#userTTL = value
+
+    IAM.users.forEach(ref => {
+      if (ref.user.allowTTLUpdate) {
+        ref.user.ttl = value
+      }
+    })
+  }
+
+  get userTTL () {
+    return this.#userTTL
+  }
+
+  set trackUsers (value) {
+    if (typeof value !== 'boolean') {
+      throw new Error(`trackUsers cannot be set to a ${typeof value} value. Only boolean values are allowed.`)
+    }
+
+    this.#trackUsers = value
+
+    if (!value) {
+      this.#users.forEach(user => user.user.setTTL(null))
+      this.#users = new Set()
+    }
+  }
+
+  get trackUsers () {
+    return this.#trackUsers
   }
 
   /**
@@ -191,6 +258,29 @@ class Manager {
     }
 
     return data
+  }
+
+  /**
+   * Disable user tracking. Users will not be registered in the IAM.
+   * This also affects group data.
+   * @warning This prevents groups from being aware of their users.
+   * Internally, IAM automatically updates group membership lists whenever a
+   * user is created. However; when tracking is disabled, it is impossible to
+   * notify the groups when a new user joins the group. However, users _will_
+   * know when a group is assigned, so group membership is not ignored when
+   * running the `user.authorized()` method. The only major implication of
+   * disabling user tracking is in reporting applications relying on groups
+   * to show user membership (a smaller edge case).
+   */
+  disableUserTracking () {
+    this.trackUsers = false
+  }
+
+  /**
+   * Enable user tracking. Users will be registered in the IAM.
+   */
+  enableUserTracking () {
+    this.trackUsers = true
   }
 
   /**
@@ -472,6 +562,20 @@ class Manager {
    * @return {Boolean}
    */
   isUserAuthorized (user, resource = '', right = '') {
+    if (!(user instanceof User)) {
+      if (this.trackUsers && user instanceof Symbol) {
+        user = this.getUser(user)
+      }
+
+      if (!(user instanceof User)) {
+        throw new Error('isUserAuthorized requires a user as the first argument.')
+      }
+    }
+
+    if (user.disabled) {
+      return false
+    }
+
     right = right.trim() === '' ? '*' : right.trim()
 
     if (!(user instanceof User)) {
@@ -615,6 +719,10 @@ class Manager {
     if (!this.roleExists('everyone')) {
       this.createRole('everyone', {})
     }
+  }
+
+  removeUser () {
+    Array.from(arguments).forEach(user => this.#users.delete(this.getUser(user.OID)))
   }
 }
 

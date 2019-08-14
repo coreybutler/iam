@@ -15,6 +15,10 @@ export default class User {
   #oid = Symbol('user')
   #name = null
   #memberOf = new Set()
+  #ttl = null
+  #allowTTLUpdate = true
+  #timer = null
+  #active = true
 
   /**
    * @constructor
@@ -61,10 +65,35 @@ export default class User {
       groupRoles: {
         enumerable: false,
         get: () => Array.from(this.#memberOf).map(oid => IAM.getGroup(oid).roles)
+      },
+      setTTL: {
+        enumerable: false,
+        writable: false,
+        configurable: false,
+        value: value => {
+          this.#ttl = value
+
+          if (value === null) {
+            this.#allowTTLUpdate = true
+            clearTimeout(this.#timer)
+          } else {
+            this.#timer = setTimeout(() => this.destroy(), this.ttl)
+          }
+        }
       }
     })
 
     IAM.registerUser(this)
+  }
+
+  set ttl (value) {
+    if (value !== null && (typeof value !== 'number' || value <= 0)) {
+      throw new Error(`ttl requires a number greater than 0. "${value}" is not a valid number.`)
+    }
+
+    this.#allowTTLUpdate = false
+
+    this.setTTL(value)
   }
 
   /**
@@ -189,6 +218,10 @@ export default class User {
     return this.groups.map(group => group.name)
   }
 
+  /**
+   * @property {object}
+   * Represents the user in JSON form.
+   */
   get data () {
     let data = {
       name: this.#name,
@@ -197,6 +230,40 @@ export default class User {
     }
 
     return data
+  }
+
+  // get summary () {
+  //   let data = {
+  //     name: this.#name,
+  //     roles: Array.from(this.roles).map(role => role.name),
+  //     rights: this.rights,
+  //     groups: this.groups
+  //   }
+  //
+  //   return data
+  // }
+
+  /**
+   * @property {boolean}
+   * Indicates the user is disabled.
+   */
+  get disabled () {
+    return !this.#active
+  }
+
+  /**
+   * Disable the user. This forces the `authorized()` method to always return false.
+   */
+  disable () {
+    this.#active = false
+  }
+
+  /**
+   * Enable the user. The `authorized()` method will respect all roles/groups/rights
+   * associated with the user.
+   */
+  enable () {
+    this.#active = true
   }
 
   /**
@@ -394,17 +461,9 @@ export default class User {
   }
 
   /**
-   * A summary of user data.
-   * @return {object}
+   * Destroy/delete this user.
    */
-  get summary () {
-    let data = {
-      name: this.#name,
-      roles: Array.from(this.roles).map(role => role.name),
-      rights: this.rights,
-      groups: this.groups
-    }
-
-    return data
+  destroy () {
+    IAM.removeUser(this.#oid)
   }
 }

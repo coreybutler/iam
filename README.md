@@ -15,13 +15,6 @@ if (user.authorized('system resource', 'view')) {
 }
 ```
 
-**Demo UI**
-
-![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
-
-The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
-
-
 ## Abstracting complexity
 
 Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
@@ -32,11 +25,25 @@ Issues and confusion with authorization commonly occur when the conditional logi
 
 Just like proper sentences, **code shouldn't have "run on" logic**. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
 
+**Demo UI**
+
+![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
+
+The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
+
+
+**Demo API**
+
+![IAM Example API](https://github.com/coreybutler/iam/raw/master/examples/api/api_example.png)
+
+The code for this is available in the [api example](https://github.com/coreybutler/iam/tree/master/examples/api).
+
 ---
 
-This is available as a commonJS node module, an importable ES Module, or a global browser namespace.
+This is available as an importable ES Module. If you're interested in a CommonJS version, or a version compatible with older browsers, post an issue.
+I plan to do this, but will prioritize efforts based on community demand.
 
-**See source code for additional inline documentation.**
+A guide and high level API documentation are below. **See the source code for additional inline documentation.**
 
 ---
 
@@ -54,52 +61,55 @@ By using each of these major components (resources, rights, roles, users, groups
 
 ## Installation
 
-*Installing for Node.js (COMING SOON)*
+### Installing for Node.js >=12
 
 `npm install @butlerlogic/iam -S`
 
 ```javascript
 import IAM from '@butlerlogic/iam'
-// OR
-const iam = require('iam')
-const iam = new IAM()
 ```
 
-*Installing for the browser (ES Module)*
+_Remember_, modules in Node.js are experimental. To use them,
+you must set the `type` in the `package.json` file:
+
+```hcl
+{
+  "type": "module"
+}
+```
+
+The script must be executed using the `--experimental-modules` flag:
+
+`node --experimental-modules index.js`
+
+See the [api example](https://github.com/coreybutler/iam/tree/master/examples/api) for a working example.
+
+### Installing for the browser
 
 ```html
 <script type="module">
-  import IAM from 'https://cdn.jsdelivr.net/npm/@butlerlogic/iam/src/main.min.js'
+  import IAM from 'https://cdn.jsdelivr.net/npm/@butlerlogic/iam@latest/src/main.min.js'
 
   let user = new IAM.User('roleA', 'roleB')
 </script>
 ```
 
-*Installing for the browser as a global namespace (COMING SOON)*
+# API Usage (API)
 
-```html
-<script src="https://some.cdn.com/iam"></script>
-<script type="text/javascript">
-  let user = new IAM.User('roleA', 'roleB')
-</script>
-```
-
-## Usage (API)
-
-### Resources & Rights
+## Resources & Rights
 
 Resources can be thought of as components of a system. For example, in a UI, there may be several different pages/tools available to users. Each page/tool could be a unique resource. A basic web application may have a user page, admin section, and a few tools. All of these could be resources. It is up to the developer to identify and organize resources within the system.
 
 Rights can be thought of as actions, permissions, features, etc. Rights often represent what a user can or can't see/do. Like resources, rights are just an arbitrary label, so it can be named any way you want. The naming is less important than understanding there is a relationship between resources and rights (resources have rights).
 
-_Creating a single resource:_
+### Creating a single resource
 
 ```javascript
 // IAM.createResource('resource', rights)
 IAM.createResource('admin portal', ['view', 'manage'])
 ```
 
-_Creating bulk resources:_
+### Creating bulk resources
 
 ```javascript
 IAM.createResource({
@@ -109,11 +119,11 @@ IAM.createResource({
 })
 ```
 
-_Modifying resources:_
+### Modifying resources
 
 There is no specific "modification" feature. Just create the resource again to overwrite any existing resources/rights.
 
-_Deleting one or more resources:_
+### Deleting one or more resources
 
 ```javascript
 IAM.removeResource('admin portal', 'tool', ...)
@@ -122,7 +132,7 @@ IAM.removeResource('admin portal', 'tool', ...)
 IAM.clearResources()
 ```
 
-_Viewing available resources:_
+### Viewing available resources
 
 ```javascript
 console.log(IAM.resources)
@@ -135,11 +145,11 @@ console.log(IAM.resources)
 }
 ```
 
-### Roles
+## Roles
 
 Roles are used to map system resources/rights to users. A role consists of resources and which rights of the resource should be enforced.
 
-_Creating a role:_
+### Creating a role
 
 The example below creates a simple administrative role called "admin". This role grants `view` and `manage` **rights** on the admin portal **resource**.
 
@@ -153,7 +163,7 @@ IAM.createRole('admin', {
 })
 ```
 
-_Granting all rights:_
+### Granting all rights
 
 For situations where all rights need to be granted on a specific resource, a shortcut `*` value can be used.
 
@@ -163,7 +173,7 @@ IAM.createRole('admin', {
 })
 ```
 
-_DENY rights:_
+### DENY rights
 
 To explicitly deny a right, preface the right with the `deny:` prefix.
 
@@ -178,7 +188,7 @@ IAM.createRole('basic user', {
 })
 ```
 
-_FORCIBLY ALLOW rights:_
+### FORCIBLY ALLOW rights
 
 There are circumstances where a user may belong to more than one role or group, where one role denies a right and another allows it. For example, users may be denied access to an administration tool by default, but admins should be granted special access to the tool. In this case, the admin rights must override the denied rights. This is accomplished by prefixing a right with the `allow:` prefix.
 
@@ -194,9 +204,9 @@ IAM.createRole('superuser', {
 
 If a user was assigned to both the `basic user` _and_ `superuser` roles, the user would be granted all permissions to the admin portal because the `allow:*` right of the "superuser" role supercedes the `deny:*` right of the "basic user" role.
 
-**ALLOW RIGHTS ALWAYS SUPERCEDE DENIED RIGHTS. ALWAYS.**
+> ALLOW RIGHTS ALWAYS SUPERCEDE DENIED RIGHTS. ALWAYS.
 
-_Applying rights to everyone:_
+### Applying rights to everyone
 
 There is a private/hidden role produced by IAM, called `everyone`. This role is always assigned to all users. It is used to assign permissions which are applicable to every user of the system. A special `all()` method simplifies the process of assigning rights to everyone.
 
@@ -209,7 +219,7 @@ IAM.all({
 })
 ```
 
-_Viewing roles/rights:_
+### Viewing roles/rights
 
 The full list of roles and rights associated with them is available in the `IAM.roles` attribute.
 
@@ -224,11 +234,11 @@ console.log(IAM.roles)
 }
 ```
 
-### Users
+## Users
 
 Users can be assigned to roles, granting or denying access to system resources.
 
-_Creating a user:_
+### Creating a user
 
 ```javascript
 let user = new IAM.User()
@@ -237,7 +247,7 @@ user.name = 'John Doe'
 
 Please note that user "name" does not necessarily refer to a person's name. It is merely an optional label to help identify a particular user (useful when viewing reports, groups of users, etc).
 
-_Assigning users to a role:_
+### Assigning users to a role
 
 ```javascript
 user.assign('roleA')
@@ -252,21 +262,21 @@ let user = new IAM.User('admin', 'basic user')
 
 In the example above, the user would automatically be assigned to the "admin" and "basic user" roles.
 
-_Removing users from a role:_
+### Removing users from a role
 
 ```javascript
 user.revoke('admin')
 user.clear() // Removes all role assignments.
 ```
 
-_Determining if a user is assigned to a role:_
+### Determining if a user is assigned to a role
 
 ```javascript
 user.assignedTo('role')
 user.of('role')
 ```
 
-_Determining if a user is authorized to use a resource:_
+### Determining if a user is authorized to use a resource
 
 ```javascript
 if (user.authorized('admin portal', 'manage')) {
@@ -276,11 +286,11 @@ if (user.authorized('admin portal', 'manage')) {
 
 The code above states "if the user has the manage right on the admin portal, enable the admin view."
 
-_Group membership:_
+### Group membership
 
 See the group section below.
 
-### Group Management
+## Group Management
 
 Groups are a simple but powerful organizational container. Groups have two types of members: users
 and other groups.
@@ -289,7 +299,7 @@ Roles are assigned to groups, applying the permissions to all members of the gro
 
 Users inherit permissions from the groups they are a part of, but groups inherit permissions from the groups within them. For example, a group called "superadmin" contains a group called "admin". The "superadmin" group inherits all privileges from the "admin" group. This is a "reverse" cascade hierarchy, which allows privileges to be "rolled up" into higher order groups.
 
-_Creating groups:_
+### Creating groups
 
 ```javascript
 let group = IAM.createGroup('admin')
@@ -299,7 +309,7 @@ let groups = IAM.createGroup('admin', 'profile', '...')
 
 When a single group is created, the new group is returned (i.e. `group` in the first example). When multiple groups are created at the same time, an array of groups is returned (i.e. `groups` in the second example)
 
-_Group descriptions:_
+### Group descriptions
 
 Sometimes (especially in reporting) it is useful to have a description of a group. A generic description is generated by default, but it's possible to supply a custom description using the `description` attribute.
 
@@ -311,7 +321,7 @@ group.description = 'An administrative group.'
 
 Descriptions are optional.
 
-_Assigning roles/privileges to a group:_
+### Assigning roles/privileges to a group
 
 ```javascript
 group.assign('roleA', 'roleB')
@@ -323,7 +333,7 @@ group.assign(roleC)
 
 It is possible to assign one or more roles at the same time. A role must be the unique name (string) of an existing role or the actual `IAM.Role` object.
 
-_Removing roles/privileges from a group:_
+### Removing roles/privileges from a group
 
 ```javascript
 group.revoke('roleA', roleC)
@@ -331,11 +341,11 @@ group.revoke('roleA', roleC)
 
 Similar to adding a role, supply one or more existing role name/`IAM.Role` objects to the `revoke` method.
 
-_Removing all roles from a group:_
+### Removing all roles from a group
 
 `group.clearRoles()` clears all role assignments.
 
-_Adding & removing users to a group:_
+### Adding & removing users to a group
 
 ```javascript
 let user = new IAM.User('John Doe')
@@ -344,7 +354,7 @@ group.addMember(user)
 group.removeMember(user)
 ```
 
-_Adding & removing subgroups to a group:_
+### Adding & removing subgroups to a group
 
 ```javascript
 let group = new IAM.Group('admin')
@@ -361,7 +371,7 @@ supergroup.removeMember(group)
 supergroup.removeMember('admin')
 ```
 
-## Tracing Permission Lineage
+# Tracing Permission Lineage
 
 There are situations when it is useful to know how/why a privilege was assigned to a user. For example, it's not uncommon to ask questions like "why does/n't John Doe have permission to the administration section?". The lineage system is designed to trace a permission back to the authorization source. In other words, it helps identify which group, role, or inheritance pattern ultimately granted/denied access to a resource.
 

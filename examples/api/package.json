@@ -1,0 +1,17 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "An example expressjs-based API using IAM for access control.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --experimental-modules index.js",
+    "test": "echo \"No tests\" && exit 0"
+  },
+  "type": "module",
+  "author": "Corey Butler",
+  "license": "MIT",
+  "dependencies": {
+    "@ecor/common-api": "^1.0.5",
+    "express": "^4.17.1"
+  }
+}
