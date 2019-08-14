@@ -17,7 +17,7 @@ if (user.authorized('system resource', 'view')) {
 
 ## Shortcuts
 
-- [Why? (Including Examples)](abstracting-complexity)
+- [Why? (Including Examples)](#abstracting-complexity)
 - [Design Your Access Control System](#designing-your-access-control-system)
 - [API Docs](#installation)
 - [Tracing Permission Lineage](#tracing-permission-lineage)
