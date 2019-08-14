@@ -15,7 +15,15 @@ if (user.authorized('system resource', 'view')) {
 }
 ```
 
-## [Enough talk, jump down to the code](#installation)
+## Shortcuts
+
+- [Why? (Including Examples)](abstracting-complexity)
+- [Design Your Access Control System](#designing-your-access-control-system)
+- [API Docs](#installation)
+- [Tracing Permission Lineage](#tracing-permission-lineage)
+- [Access Control Philosophy](https://github.com/coreybutler/iam/wiki)
+
+---
 
 ## Abstracting complexity
 
@@ -42,13 +50,6 @@ The code for this is available in the [api example](https://github.com/coreybutl
 
 ---
 
-This is available as an importable ES Module. If you're interested in a CommonJS version, or a version compatible with older browsers, post an issue.
-I plan to do this, but will prioritize efforts based on community demand.
-
-A guide and high level API documentation are below. **See the source code for additional inline documentation.**
-
----
-
 ## Designing Your Access Control System
 
 **Resources** are arbitrary names associated with an application, such as `admin portal`, `user settings`, or an any other component of a system where access should be controlled.
@@ -61,7 +62,14 @@ To grant/revoke access, developers create **roles** and assign them to **users**
 
 By using each of these major components (resources, rights, roles, users, groups), the permission structure of your applications become significantly easier to manage. In turn, authorizing users becomes a trivial task with the `IAM.User` object. See examples in the usage section below.
 
+---
+
 ## Installation
+
+This is available as an importable ES Module. If you're interested in a CommonJS version, or a version compatible with older browsers, post an issue.
+I plan to do this, but will prioritize efforts based on community demand.
+
+A guide and high level API documentation are below. **See the source code for additional inline documentation.**
 
 ### Installing for Node.js >=12
 
@@ -95,6 +103,8 @@ See the [api example](https://github.com/coreybutler/iam/tree/master/examples/ap
   let user = new IAM.User('roleA', 'roleB')
 </script>
 ```
+
+---
 
 # API Usage (API)
 
@@ -372,6 +382,8 @@ supergroup.removeMember(group)
 // or
 supergroup.removeMember('admin')
 ```
+
+---
 
 # Tracing Permission Lineage
 
