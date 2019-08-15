@@ -71,7 +71,9 @@ I plan to do this, but will prioritize efforts based on community demand.
 
 A guide and high level API documentation are below. **See the source code for additional inline documentation.**
 
-### Installing for Node.js >=12
+### Installing for Node.js (8.x.x or higher)
+
+Available on [npm as @butlerlogic/iam](https://www.npmjs.com/package/@butlerlogic/iam)
 
 `npm install @butlerlogic/iam -S`
 
@@ -105,6 +107,8 @@ See the [api example](https://github.com/coreybutler/iam/tree/master/examples/ap
   let user = new IAM.User('roleA', 'roleB')
 </script>
 ```
+
+See [JSDelivr.com](https://www.jsdelivr.com/package/npm/@butlerlogic/iam) for the latest CDN version.
 
 ---
 
