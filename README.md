@@ -15,6 +15,8 @@ if (user.authorized('system resource', 'view')) {
 }
 ```
 
+I gave a recorded lightning talk about this. The video is on [YouTube](https://youtu.be/aUNfi4n5lTM?t=1392) and the slides are available at [edgeatx.org/slides](https://edgeatx.org/slides/adhoc/iam).
+
 ## Shortcuts
 
 - [Why? (Including Examples)](#abstracting-complexity)
