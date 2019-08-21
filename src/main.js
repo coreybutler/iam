@@ -6,6 +6,9 @@ import Right from './lib/right.js'
 import Lineage from './lib/lineage.js'
 
 class Manager {
+  #name = 'Untitled System'
+  #desc = `Last modified on ${new Date().toLocaleDateString()}`
+
   // Map of Set objects. Each set represents the actions
   // associated with the resource.
   #resources = new Map()
@@ -121,6 +124,30 @@ class Manager {
         }
       }
     })
+  }
+
+  get name () {
+    return this.#name
+  }
+
+  set name (value) {
+    if (value === null || value.trim().length === 0) {
+      this.#name = 'Untitled System'
+    }
+
+    this.#name = value
+  }
+
+  get description () {
+    return this.#desc
+  }
+
+  set description (value) {
+    if (value === null || value.trim().length === 0) {
+      this.#desc = `Last modified on ${new Date().toLocaleDateString()}`
+    }
+
+    this.#desc = value.trim()
   }
 
   /**
@@ -247,7 +274,7 @@ class Manager {
    * This object can be saved/reloaded to recreate an IAM system.
    */
   get configuration () {
-    let data = { resources: {}, roles: {}, groups: {} }
+    let data = { name: this.#name, description: this.#description, resources: {}, roles: {}, groups: {} }
 
     this.#resources.forEach(resource => data.resources[resource.name] = resource.data)
     this.#roles.forEach(role => data.roles[role.name] = role.data)
@@ -302,6 +329,16 @@ class Manager {
     }
 
     this.reset()
+
+    // Load name
+    if (cfg.hasOwnProperty('name')) {
+      this.name = cfg.name
+    }
+
+    // Load description
+    if (cfg.hasOwnProperty('description')) {
+      this.desc = cfg.description
+    }
 
     // Load resources first
     if (cfg.hasOwnProperty('resources')) {
