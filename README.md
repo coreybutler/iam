@@ -1,6 +1,8 @@
 # IAM (Identification and Authorization Management)
 _(For the browser and Node.js)_
 
+Like this project? Let people know with a [tweet](https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb). 
+
 This library manages roles and permissions, allowing developers to create simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library (internally), it is capable of automatically deriving user rights, even in complex schemas.
 
 **Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation.** In other words, the code should reflect the answer to a simple question: _"does the user have the right to do something with the system resource?"_.
