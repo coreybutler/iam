@@ -14,9 +14,7 @@ if (user.authorized('system resource', 'view')) {
   throw new Error('Access Denied')
 }
 ```
-
-I gave a recorded lightning talk about this. The video is on [YouTube](https://youtu.be/aUNfi4n5lTM?t=1392) and the slides are available at [edgeatx.org/slides](https://edgeatx.org/slides/adhoc/iam).
-
+  
 ## Shortcuts
 
 - [Why? (Including Examples)](#abstracting-complexity)
@@ -24,6 +22,16 @@ I gave a recorded lightning talk about this. The video is on [YouTube](https://y
 - [API Docs](#installation)
 - [Tracing Permission Lineage](#tracing-permission-lineage)
 - [Access Control Philosophy](https://github.com/coreybutler/iam/wiki)
+
+<table cellpadding="0" cellspacing="10">
+  <tr>
+    <td>
+<a href="https://youtu.be/aUNfi4n5lTM?t=1392" alt="IAM on YouTube" target="_blank"><img src="https://smallimg.pngkey.com/png/small/13-138700_youtube-logo-png-transparent-background-youtube-live-logo.png" height="50px;"/></a>
+    </td>
+    <td>I gave a recorded lightning talk about this. The <a href="https://youtu.be/aUNfi4n5lTM?t=1392" target="blank">video</a> has companion slides, available at <a href="https://edgeatx.org/slides/adhoc/iam" target="_blank">edgeatx.org/slides</a>.
+    </td>
+  </tr>
+</table>
 
 ---
 
