@@ -1,5 +1,5 @@
 {
-  "name": "rights",
+  "name": "@butlerlogic/iam",
   "version": "1.0.0",
   "description": "A simple identification and authorization management utility.",
   "main": "src/main.js",
