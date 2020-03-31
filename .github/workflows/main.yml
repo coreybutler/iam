@@ -1,10 +1,12 @@
+name: Tag, Release, Publish
+
 on:
   push:
     branches:
      - master
 
 jobs:
-  autotag:
+  Deploy:
     runs-on: ubuntu-latest
     steps:
         # Checkout updated source code
