@@ -72,15 +72,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           release-tag: ${{ steps.autotagger.outputs.tagname }}
 
-        # Build npm packages
-      - name: Build Module Artifacts
-        id: build_npm
-        if: steps.create_release.outputs.id != ''
-        run: |
-          npm install
-          cd ./build && npm install && cd ../
-          npm run build --if-present
-
         # Use this action to publish a single module to npm.
       - name: Publish
         id: publish_npm

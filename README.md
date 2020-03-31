@@ -1,13 +1,13 @@
+
+Tell other developer network about IAM with a [tweet](https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb). 
+
 # IAM (Identification and Authorization Management)
-_(For the browser and Node.js)_
 
-Like this project? Let people know with a [tweet](https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb). 
+IAM is an access control framework for the browser and Node.js. It is lightweight, built on standards, and incredibly powerful.
 
-This library manages roles and permissions, allowing developers to create simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library (internally), it is capable of automatically deriving user rights, even in complex schemas.
+The library manages roles and permissions, allowing developers to create simple or complex authorization patterns. The **main benefit** is the _ridiculously lightweight_ **query engine**, which primarily answers one question: 
 
-**Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation.** In other words, the code should reflect the answer to a simple question: _"does the user have the right to do something with the system resource?"_.
-
-**The goal:**
+_"Does the user have the right to do something with the system resource?"_
 
 ```javascript
 if (user.authorized('system resource', 'view')) {
@@ -16,57 +16,93 @@ if (user.authorized('system resource', 'view')) {
   throw new Error('Access Denied')
 }
 ```
-  
+
+**How it works:**
+
+IAM keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library (internally), it is capable of automatically deriving user rights, even in complex schemas. It's like a permissions calculator.
+
+The library is designed under the guiding principle that **determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation.**
+
 ## Shortcuts
 
-- [Why? (Including Examples)](#abstracting-complexity)
-- [Design Your Access Control System](#designing-your-access-control-system)
-- [API Docs](#installation)
-- [Tracing Permission Lineage](#tracing-permission-lineage)
-- [Access Control Philosophy](https://github.com/coreybutler/iam/wiki)
+- [Examples](#abstracting-complexity)
+- [How to Design an Access Control System](#designing-an-access-control-system)
+- [Installation](#installation)
+- [API Docs](#api-usage)
+- [Tracing Permission Lineage](#tracing-permission-lineage) (another awesome query engine feature)
+- [Basic Philosophy](https://github.com/coreybutler/iam/wiki)
 
 <table cellpadding="0" cellspacing="10">
   <tr>
     <td>
 <a href="https://youtu.be/aUNfi4n5lTM?t=1392" alt="IAM on YouTube" target="_blank"><img src="https://smallimg.pngkey.com/png/small/13-138700_youtube-logo-png-transparent-background-youtube-live-logo.png" height="50px;"/></a>
     </td>
-    <td>I gave a recorded lightning talk about this. The <a href="https://youtu.be/aUNfi4n5lTM?t=1392" target="blank">video</a> has companion slides, available at <a href="https://edgeatx.org/slides/adhoc/iam" target="_blank">edgeatx.org/slides</a>.
+    <td><a href="https://github.com/coreybutler" target="_blank">Corey Butler</a> (original author) gave a recorded introduction to IAM, available <a href="https://youtu.be/aUNfi4n5lTM?t=1392" target="blank">here</a>. The companion slides are available at <a href="https://edgeatx.org/slides/adhoc/iam" target="_blank">edgeatx.org/slides</a>.
     </td>
   </tr>
 </table>
 
----
-
 ## Abstracting complexity
 
-Issues and confusion with authorization commonly occur when the conditional logic is too complicated.
+Problems with authorization are typically caused by conditional logic that is too complicated.
 
-Consider the following authorization question:
+Consider the following "authorization" question:
 
-> "Is the user authorized to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides to account for?"
+> "Is the user allowed to use this feature, or are they part of a group that can access this feature, or have they been explicitly denied access to a feature, or are they part of a group that's part of another group that has permission, or are any permission overrides to account for?"
 
-Just like proper sentences, **code shouldn't have "run on" logic**. You shouldn't have to be a mental gymnast to understand whether someone should have access to a feature or not. IAM abstracts this complexity.
+Just like proper sentences, **code shouldn't have "run on" logic**. Being a mental gymnast should not be a prerequisite to understand whether someone can access a system component or not. IAM abstracts this complexity.
 
-### Demo UI
-
-![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
+### Example Browser UI
 
 The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
 
+![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
 
-### Demo API
 
-![IAM Example API](https://github.com/coreybutler/iam/raw/master/examples/api/api_example.png)
+### Example Node API
 
 The code for this is available in the [api example](https://github.com/coreybutler/iam/tree/master/examples/api).
 
+In this example, `requireAuthorization` is Express middleware that maps to IAM's `user.authorize()` method.
+
+![IAM Example API](https://github.com/coreybutler/iam/raw/master/examples/api/api_example.png)
+
 ---
 
-## Designing Your Access Control System
+## Designing an Access Control System
 
-**Resources** are arbitrary names associated with an application, such as `admin portal`, `user settings`, or an any other component of a system where access should be controlled.
+The following guide breaks down the basic terminology of an access control system (as it pertains to IAM).
 
-**Rights** are defined for each resource. For example, the `admin portal` resource may have `view` and `manage` rights associated with it. Users who are granted `view` rights should be able to see the `admin portal`, while users with `manage` rights can do something in the admin portal. Users without either of these rights shouldn't see the admin portal at all.
+<table cellpadding="0" cellspacing="10">
+  <tr>
+    <td style="font-weight: bold; vertical-align:top;">Resources</td>
+    <td>
+        The names associated with a system component, such as <code>admin portal</code>, <code>user settings</code>, or an any other part of a system where access should be controlled.
+    </td>
+  </tr>
+  <tr>
+    <td style="font-weight: bold; vertical-align:top;">Rights</td>
+    <td>
+        Rights are defined for each resource.<br/>For example, the <code>admin portal</code> resource may have <code>view</code> and <code>manage</code> rights associated with it. Users who are granted <code>view</code> rights should be able to see the <code>admin portal</code>, while users with <code>manage</code> rights can do something in the admin portal. Users without either of these rights shouldn't see the admin portal at all.
+    </td>
+  </tr>
+  <tr>
+    <td style="font-weight: bold; vertical-align:top;">Users</td>
+    <td>System users</td>
+  </tr>
+  <tr>
+    <td style="font-weight: bold; vertical-align:top;">Roles</td>
+    <td>
+      A collection of permissions for <i>system features</i>, typically based on how the festures are used together.
+    </td>
+  </tr>
+  <tr>
+    <td style="font-weight: bold; vertical-align:top;">Groups</td>
+    <td>
+      A collection of <i>users</i>.
+    </td>
+  </tr>
+</table>
 
 To grant/revoke access, developers create **roles** and assign them to **users** or **groups** of users. A role is assigned the rights of specific resources. Users and groups can then be assigned to these roles.
 
@@ -78,19 +114,18 @@ By using each of these major components (resources, rights, roles, users, groups
 
 ## Installation
 
-This is available as an importable ES Module. If you're interested in a CommonJS version, or a version compatible with older browsers, post an issue.
-I plan to do this, but will prioritize efforts based on community demand.
+This is available as an importable ES Module (all runtimes), CommonJS (Node.js), and global object (all runtimes).
 
 A guide and high level API documentation are below. **See the source code for additional inline documentation.**
 
-### Installing for Node.js (8.x.x or higher)
+### Installing for Node.js (8.x.x or higher) as an ES Module
 
-Available on [npm as @butlerlogic/iam](https://www.npmjs.com/package/@butlerlogic/iam)
+Available on npm as [@butlerlogic/node-iam](https://www.npmjs.com/package/@butlerlogic/node-iam). Sourcemaps are available via [@butlerlogic/node-iam-debug](https://www.npmjs.com/package/@butlerlogic/node-iam-debug).
 
-`npm install @butlerlogic/iam -S`
+`npm install @butlerlogic/node-iam -S`
 
 ```javascript
-import IAM from '@butlerlogic/iam'
+import IAM from '@butlerlogic/node-iam'
 ```
 
 _Remember_, to use modules in Node.js, the `type` attribute in `package.json` must be set to `"module"`:
@@ -101,8 +136,7 @@ _Remember_, to use modules in Node.js, the `type` attribute in `package.json` mu
 }
 ```
 
-If you're running an older version of Node (<12.x.x), you may need to
-run Node with the `--experimental-modules` flag:
+**For Node versions prior to 13.x.x**, Node must be run with the `--experimental-modules` flag:
 
 `node --experimental-modules index.js`
 
@@ -110,11 +144,21 @@ For more information, read the [ES Module Support Announcement](https://medium.c
 
 See the [api example](https://github.com/coreybutler/iam/tree/master/examples/api) for a working example.
 
+### Installing for Node.js as a CommonJS Module
+
+Available on npm as [@butlerlogic/node-iam-legacy](https://www.npmjs.com/package/@butlerlogic/node-iam-legacy). Sourcemaps are available via [@butlerlogic/node-iam-legacy-debug](https://www.npmjs.com/package/@butlerlogic/node-iam-legacy-debug).
+
+`npm install @butlerlogic/node-iam-legacy -S`
+
+```javascript
+const IAM = require('@butlerlogic/node-iam-legacy')
+```
+
 ### Installing for the browser
 
 ```html
 <script type="module">
-  import IAM from 'https://cdn.jsdelivr.net/npm/@butlerlogic/iam@latest/src/main.min.js'
+  import IAM from 'https://cdn.jsdelivr.net/npm/@butlerlogic/browser-iam@1.0.1/iam-1.0.1.min.js'
 
   let user = new IAM.User('roleA', 'roleB')
 </script>
@@ -122,9 +166,18 @@ See the [api example](https://github.com/coreybutler/iam/tree/master/examples/ap
 
 See [JSDelivr.com](https://www.jsdelivr.com/package/npm/@butlerlogic/iam) for the latest CDN version.
 
+IAM is also available on Pika:
+
+```html
+<script type="module">
+  import IAM from 'https://cdn.pika.dev/@butlerlogic/browser-iam@^1.0.1'
+
+  let user = new IAM.User('roleA', 'roleB')
+</script>
+```
 ---
 
-# API Usage (API)
+# API Usage
 
 ## Resources & Rights
 
@@ -407,9 +460,9 @@ supergroup.removeMember('admin')
 
 There are situations when it is useful to know how/why a privilege was assigned to a user. For example, it's not uncommon to ask questions like "why does/n't John Doe have permission to the administration section?". The lineage system is designed to trace a permission back to the authorization source. In other words, it helps identify which group, role, or inheritance pattern ultimately granted/denied access to a resource.
 
-The `IAM.Group` and `IAM.User` objects both contain a `trace()` method for this. This method requires two arguments: `resource` (string/`IAM.Resource`) and `right` (string/`IAM.Right`).
+The `IAM.Group` and `IAM.User` objects both contain a `trace(<resource>, <right>)` method for this. The **resource** needs to be a string/`IAM.Resource`) and the **right** is a string/`IAM.Right`.
 
-Consider the following, where a system resource called `admin portal` exists, but everyone is denied access by default. A role called `administrator` is created, which grants access to the `admin portal` resource. Using this structure, only members of the `administrator` role should have access to the `admin portal` resource.
+In the following example, a system resource called `admin portal` exists, but everyone is denied access by default. A role called `administrator` is created, which grants access to the `admin portal` resource. Using this structure, only members of the `administrator` role should have access to the `admin portal` resource.
 
 ```javascript
 // Create a system resource and rights.
