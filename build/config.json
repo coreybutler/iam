@@ -1,0 +1,16 @@
+{
+  "nodeOutput": "../.dist/node",
+  "browserOutput": "../.dist/browser",
+  "testOutput": "../test",
+  "npmOrganization": "",
+  "external": ["os", "fs", "http", "https", "events"],
+  "terser": {
+    "compress": {
+      "keep_fnames": true,
+      "keep_classnames": true,
+      "drop_console": true,
+      "passes": 10,
+      "warnings": true
+    }
+  }
+}

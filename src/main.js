@@ -274,7 +274,7 @@ class Manager {
    * This object can be saved/reloaded to recreate an IAM system.
    */
   get configuration () {
-    let data = { name: this.#name, description: this.#description, resources: {}, roles: {}, groups: {} }
+    let data = { name: this.#name, description: this.#desc, resources: {}, roles: {}, groups: {} }
 
     this.#resources.forEach(resource => data.resources[resource.name] = resource.data)
     this.#roles.forEach(role => data.roles[role.name] = role.data)

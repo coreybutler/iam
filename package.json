@@ -1,15 +1,27 @@
 {
-  "name": "rights",
+  "name": "@butlerlogic/iam",
   "version": "1.0.0",
   "description": "A simple identification and authorization management utility.",
   "main": "src/main.js",
   "directories": {
-    "lib": "src/lib",
-    "test": "test"
+    "lib": "src/lib"
   },
   "scripts": {
-    "test": "tap -R spec ./test/**/*.js",
-    "test:syntax": "standard --verbose | snazzy"
+    "test": "npm run test:node && npm run test:browser",
+    "start": "node src/index.js",
+    "build": "cd ./build && npm run all",
+    "build:node": "cd ./build && npm run node",
+    "build:browser": "cd ./build && npm run browser",
+    "test:node": "cd ./test && npm run node",
+    "test:browser": "cd ./test && npm run browser",
+    "reset": "echo Resetting test environments && cd ./test && npm run clean && cd ../build && npm run clean",
+    "manually": "cd ./test && npm run browser:manual:open",
+    "again": "cd ./test && npm run browser:manual",
+    "setup": "echo \"Installing build and test dependencies...\" && cd ./build && npm i --no-package-lock && cd ../test && npm i --no-package-lock && echo Template Setup Complete.",
+    "resetup": "node -e \"let fs=require('fs'),path=require('path');fs.rmdirSync(path.resolve('./build/node_modules'), { recursive: true });fs.rmdirSync(path.resolve('./test/node_modules'), { recursive: true });\" && npm run setup",
+    "report:compat": "cd ./test && npm run compat",
+    "report:syntax": "cd ./test && npm run syntax",
+    "report:preview": "npm pack --dry-run && echo \"==============================\" && echo \"This report shows what will be published to the module registry. Pay attention to the tarball contents and assure no sensitive files will be published.\""
   },
   "keywords": [
     "iam",
@@ -21,21 +33,5 @@
   ],
   "author": "Corey Butler",
   "license": "MIT",
-  "type": "module",
-  "devDependencies": {
-    "fs-extra": "^8.1.0",
-    "rollup": "^1.17.0",
-    "rollup-plugin-buble": "^0.19.2",
-    "rollup-plugin-replace": "^2.0.0",
-    "rollup-plugin-strip-code": "^0.2.6",
-    "rollup-plugin-terser": "^5.1.1",
-    "rollup-plugin-uglify": "^4.0.0",
-    "rollupify": "^0.5.1",
-    "snazzy": "^7.1.1",
-    "source-map-support": "^0.5.10",
-    "standard": "^12.0.1",
-    "tap": "^14.2.0",
-    "tap-diff": "^0.1.1",
-    "tape": "^4.9.1"
-  }
+  "type": "module"
 }
