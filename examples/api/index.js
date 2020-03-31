@@ -1,6 +1,6 @@
 import express from 'express'
 import http from 'http'
-import api from '@ecor/common-api'
+import api from '@butlerlogic/common-api'
 import IAM from '../../src/main.js'
 
 // Setup Express
