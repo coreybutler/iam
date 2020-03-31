@@ -1,6 +1,8 @@
 # IAM (Identification and Authorization Management)
 _(For the browser and Node.js)_
 
+Like this project? Let people know with a [tweet](https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb). 
+
 This library manages roles and permissions, allowing developers to create simple or complex authorization patterns. It keeps track of resources, rights, roles, and groups. By maintaining the permission structure within the library (internally), it is capable of automatically deriving user rights, even in complex schemas.
 
 **Determining whether a user is authorized to view/use a specific feature of an application should always be a binary operation.** In other words, the code should reflect the answer to a simple question: _"does the user have the right to do something with the system resource?"_.
@@ -14,9 +16,7 @@ if (user.authorized('system resource', 'view')) {
   throw new Error('Access Denied')
 }
 ```
-
-I gave a recorded lightning talk about this. The video is on [YouTube](https://youtu.be/aUNfi4n5lTM?t=1392) and the slides are available at [edgeatx.org/slides](https://edgeatx.org/slides/adhoc/iam).
-
+  
 ## Shortcuts
 
 - [Why? (Including Examples)](#abstracting-complexity)
@@ -24,6 +24,16 @@ I gave a recorded lightning talk about this. The video is on [YouTube](https://y
 - [API Docs](#installation)
 - [Tracing Permission Lineage](#tracing-permission-lineage)
 - [Access Control Philosophy](https://github.com/coreybutler/iam/wiki)
+
+<table cellpadding="0" cellspacing="10">
+  <tr>
+    <td>
+<a href="https://youtu.be/aUNfi4n5lTM?t=1392" alt="IAM on YouTube" target="_blank"><img src="https://smallimg.pngkey.com/png/small/13-138700_youtube-logo-png-transparent-background-youtube-live-logo.png" height="50px;"/></a>
+    </td>
+    <td>I gave a recorded lightning talk about this. The <a href="https://youtu.be/aUNfi4n5lTM?t=1392" target="blank">video</a> has companion slides, available at <a href="https://edgeatx.org/slides/adhoc/iam" target="_blank">edgeatx.org/slides</a>.
+    </td>
+  </tr>
+</table>
 
 ---
 
