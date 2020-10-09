@@ -1,9 +1,10 @@
+<h1 align="center">IAM</br><b align="center">Identification and Authorization Management</b></h1>
 
-Tell other developer network about IAM with a [tweet](https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb).
+<h5 align="center">
+Share with your developer network using a quick <a href="https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb">tweet</a>.
+</h5>
 
-# IAM (Identification and Authorization Management)
-
-IAM is an access control framework for all JavaScript runtimes (Browsers, Node.js, Deno, etc). It is lightweight, built on standards, and incredibly powerful.
+IAM is an access control framework that runs on all JavaScript runtimes (Browsers, Node.js, Deno, etc). It is lightweight, built on standards, and incredibly powerful.
 
 The library manages roles and permissions, allowing developers to create simple or complex authorization patterns. The **main benefit** is the _ridiculously lightweight_ **query engine**, which primarily answers one question:
 
