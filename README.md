@@ -1,4 +1,4 @@
-<h1 align="center">IAM</br><b align="center">Identification and Authorization Management</b></h1>
+<h1 align="center">IAM</br><em align="center">Identification and Authorization Management</em></h1>
 
 <h5 align="center">
 Share with your developer network using a quick <a href="https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb">tweet</a>.
