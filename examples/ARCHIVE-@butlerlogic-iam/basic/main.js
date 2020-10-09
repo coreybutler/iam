@@ -9,7 +9,7 @@ IAM.createResource({
 
 // Set defaults. Allow users to view the home
 // and blog tabs, but deny access to the administrator.
-IAM.all({
+IAM.everyone({
   home: '*',
   blog: ['view', 'deny:edit']
 })

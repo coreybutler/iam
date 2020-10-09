@@ -10,7 +10,7 @@ const app = express()
 IAM.createResource('blog', ['create', 'read', 'update', 'delete', 'list'])
 
 // Identify rights associated with all users of the system.
-IAM.all({
+IAM.everyone({
   blog: ['read', 'list']
 })
 

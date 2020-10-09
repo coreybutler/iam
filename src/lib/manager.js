@@ -118,7 +118,7 @@ export default class Manager extends Base {
   reset () {
     this.#items = new Map()
     this.#named = new Map()
-    globalThis[REGISTRY_ID].all()
+    globalThis[REGISTRY_ID].everyone()
     super.reset()
   }
 }

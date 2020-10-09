@@ -29,6 +29,7 @@ if (user.authorized('system resource', 'view')) {
         </li>
         <li>This was originally released as a library for <a href="https://butlerlogic.com" target="_blank">Butler Logic</a> clients. Fortunately, it has become a more generic tool, available for a general audience. As such, we've moved the package from <code>@butlerlogic/iam</code> to <code>@author.io/iam</code>. The Author npm organization is more suitable for long term support.</li>
       </ol>
+      <p>This release also introduced 195 unit tests.</p>
     </td>
   </tr>
 </table>
@@ -307,10 +308,10 @@ If a user was assigned to both the `basic user` _and_ `superuser` roles, the use
 
 ### Applying rights to everyone
 
-There is a private/hidden role produced by IAM, called `everyone`. This role is always assigned to all users. It is used to assign permissions which are applicable to every user of the system. A special `all()` method simplifies the process of assigning rights to everyone.
+There is a private/hidden role produced by IAM, called `everyone`. This role is always assigned to all users. It is used to assign permissions which are applicable to every user of the system. A special `everyone()` method simplifies the process of assigning rights to everyone.
 
 ```javascript
-IAM.all({
+IAM.everyone({
   'resource': 'right',
   'admin portal': 'deny:*',
   'user portal': 'view', // A single string is valid
@@ -487,7 +488,7 @@ IAM.createResource({
 })
 
 // Deny admin portal rights for everyone.
-IAM.all({
+IAM.everyone({
   'admin portal': 'deny:*'
 })
 

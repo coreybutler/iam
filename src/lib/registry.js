@@ -420,7 +420,8 @@ class Registry extends Base {
   }
 
   all () {
-    console.warn('IAM.all() is deprecated. Use IAM.everyone() instead.')
+    const location = (new Error()).stack.split('\n').slice(1, 2).join('').trim()
+    console.warn('IAM.all() is deprecated. Use IAM.everyone() instead ' + location)
     this.everyone(...arguments)
   }
 
@@ -559,7 +560,7 @@ class Registry extends Base {
       for (const role of cfg.roles) {
         if (role.name && role.rights) {
           if (role.name === 'everyone') {
-            this.all(role.rights)
+            this.everyone(role.rights)
           } else {
             const r = this.createRole(role.name, role.rights)
             if (role.description) {

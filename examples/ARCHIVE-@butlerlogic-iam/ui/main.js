@@ -78,7 +78,7 @@ IAM.createRole('superadmin', {
 })
 
 // Grant resource rights to everyone.
-IAM.all({
+IAM.everyone({
   'admin portal': 'deny:*',
   settings: '*',
   profile: ['view', 'manage']
