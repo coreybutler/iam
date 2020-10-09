@@ -73,7 +73,7 @@ Just like proper sentences, **code shouldn't have "run on" logic**. Being a ment
 
 The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
 
-![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
+![IAM Example UI](https://github.com/coreybutler/iam/raw/ce600d84c1237929fd63ed336de4c08e33001165/examples/basic/IAM.png)
 
 
 ### Example Node API
@@ -82,7 +82,7 @@ The code for this is available in the [api example](https://github.com/coreybutl
 
 In this example, `requireAuthorization` is Express middleware that maps to IAM's `user.authorize()` method.
 
-![IAM Example API](https://github.com/coreybutler/iam/raw/master/examples/api/api_example.png)
+![IAM Example API](https://github.com/coreybutler/iam/raw/ce600d84c1237929fd63ed336de4c08e33001165/examples/api/api_example.png)
 
 ---
 
