@@ -6,6 +6,7 @@ _*
 !.dockerignore
 !.browserslistrc
 !.eslintrc
+!.github
 !.*.yml
 package-lock.json
 node_modules
