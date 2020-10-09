@@ -131,27 +131,21 @@ By using each of these major components (resources, rights, roles, users, groups
 
 ## Installation
 
-This is available as an importable ES Module (all runtimes), CommonJS (Node.js), and global object (all runtimes).
+This is available as an importable ES Module (all runtimes).
 
 A guide and high level API documentation are below. **See the source code for additional inline documentation.**
 
 ### Installing for Node.js (8.x.x or higher) as an ES Module
 
-Available on npm as [@butlerlogic/node-iam](https://www.npmjs.com/package/@butlerlogic/node-iam). Sourcemaps are available via [@butlerlogic/node-iam-debug](https://www.npmjs.com/package/@butlerlogic/node-iam-debug).
-
-`npm install @butlerlogic/node-iam -S`
-
 ```javascript
-import IAM from '@butlerlogic/node-iam'
+// Browser/Deno Runtime
+import IAM, { Resource, Role, Group User, Right } from 'https://cdn.jsdelivr.net/npm/@author.io/iam/index.min.js'
+
+// Node Runtime
+import IAM, { Resource, Role, Group User, Right } from '@author.io/iam'
 ```
 
-_Remember_, to use modules in Node.js, the `type` attribute in `package.json` must be set to `"module"`:
-
-```hcl
-{
-  "type": "module"
-}
-```
+`npm install @author.io/iam -S`
 
 **For Node versions prior to 13.x.x**, Node must be run with the `--experimental-modules` flag:
 
@@ -161,37 +155,6 @@ For more information, read the [ES Module Support Announcement](https://medium.c
 
 See the [api example](https://github.com/coreybutler/iam/tree/master/examples/api) for a working example.
 
-### Installing for Node.js as a CommonJS Module
-
-Available on npm as [@butlerlogic/node-iam-legacy](https://www.npmjs.com/package/@butlerlogic/node-iam-legacy). Sourcemaps are available via [@butlerlogic/node-iam-legacy-debug](https://www.npmjs.com/package/@butlerlogic/node-iam-legacy-debug).
-
-`npm install @butlerlogic/node-iam-legacy -S`
-
-```javascript
-const IAM = require('@butlerlogic/node-iam-legacy')
-```
-
-### Installing for the browser
-
-```html
-<script type="module">
-  import IAM from 'https://cdn.jsdelivr.net/npm/@butlerlogic/browser-iam@1.0.1/iam-1.0.1.min.js'
-
-  let user = new IAM.User('roleA', 'roleB')
-</script>
-```
-
-See [JSDelivr.com](https://www.jsdelivr.com/package/npm/@butlerlogic/iam) for the latest CDN version.
-
-IAM is also available on Pika:
-
-```html
-<script type="module">
-  import IAM from 'https://cdn.pika.dev/@butlerlogic/browser-iam@^1.0.1'
-
-  let user = new IAM.User('roleA', 'roleB')
-</script>
-```
 ---
 
 # API Usage
@@ -229,7 +192,7 @@ There is no specific "modification" feature. Just create the resource again to o
 IAM.removeResource('admin portal', 'tool', ...)
 
 // To remove all:
-IAM.clearResources()
+IAM.removeResource()
 ```
 
 ### Viewing available resources
@@ -326,6 +289,7 @@ The full list of roles and rights associated with them is available in the `IAM.
 ```javascript
 console.log(IAM.roles)
 ```
+
 ```json
 {
   "admin portal": ["deny:view", "deny:manage"],
@@ -357,7 +321,7 @@ user.assign('roleB', 'roleC')
 There is also a shortcut to assign roles to a user when the user is created:
 
 ```javascript
-let user = new IAM.User('admin', 'basic user')
+let user = IAM.createUser('admin', 'basic user')
 ```
 
 In the example above, the user would automatically be assigned to the "admin" and "basic user" roles.
@@ -372,7 +336,6 @@ user.clear() // Removes all role assignments.
 ### Determining if a user is assigned to a role
 
 ```javascript
-user.assignedTo('role')
 user.of('role')
 ```
 
@@ -448,10 +411,14 @@ Similar to adding a role, supply one or more existing role name/`IAM.Role` objec
 ### Adding & removing users to a group
 
 ```javascript
-let user = new IAM.User('John Doe')
+let user = new IAM.User()
 
-group.addMember(user)
-group.removeMember(user)
+group.add(user)
+group.remove(user)
+
+// or
+user.join(group)
+user.leave(group)
 ```
 
 ### Adding & removing subgroups to a group
@@ -461,14 +428,14 @@ let group = new IAM.Group('admin')
 let supergroup = new IAM.Group('superadmin')
 
 // Groups can be added by IAM.Group object or by name
-supergroup.addMember(group)
+supergroup.add(group)
 // or
-supergroup.addMember('admin')
+supergroup.add('admin')
 
 // Groups can be removed by IAM.Group object or by name
-supergroup.removeMember(group)
+supergroup.remove(group)
 // or
-supergroup.removeMember('admin')
+supergroup.remove('admin')
 ```
 
 ---
@@ -477,14 +444,14 @@ supergroup.removeMember('admin')
 
 There are situations when it is useful to know how/why a privilege was assigned to a user. For example, it's not uncommon to ask questions like "why does/n't John Doe have permission to the administration section?". The lineage system is designed to trace a permission back to the authorization source. In other words, it helps identify which group, role, or inheritance pattern ultimately granted/denied access to a resource.
 
-The `IAM.Group` and `IAM.User` objects both contain a `trace(<resource>, <right>)` method for this. The **resource** needs to be a string/`IAM.Resource`) and the **right** is a string/`IAM.Right`.
+The `IAM.Group` and `IAM.User` objects both contain a `trace(<resource>, <right>)` method for this. The **resource** needs to be a string/`Resource`) and the **right** is a string/`Right`.
 
 In the following example, a system resource called `admin portal` exists, but everyone is denied access by default. A role called `administrator` is created, which grants access to the `admin portal` resource. Using this structure, only members of the `administrator` role should have access to the `admin portal` resource.
 
 ```javascript
 // Create a system resource and rights.
 IAM.createResource({
-  'admin portal', ['view', 'manage'],
+  'admin portal', ['view', 'manage']
 })
 
 // Deny admin portal rights for everyone.
@@ -501,15 +468,15 @@ IAM.createRole('administrator', {
 IAM.createGroup('partialadmin', 'admin', 'superadmin')
 
 // Assign the administrator role to the partialadmin group.
-IAM.getGroup('partialadmin').assign('administrator')
+IAM.group('partialadmin').assign('administrator')
 
 // Add the partialadmin group to the admin group,
 // and add the admin group to the superadmin group.
 // This is the equivalent of saying "the partialadmin
 // group belongs to the admin group, and the admin group
 // belongs to the superadmin group".
-IAM.getGroup('admin').addMember('partialadmin')
-IAM.getGroup('superadmin').addMember('admin')
+IAM.group('admin').add('partialadmin')
+IAM.group('superadmin').add('admin')
 
 // Create a user
 let user = new IAM.User()
