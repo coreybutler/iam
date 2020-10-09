@@ -1,4 +1,4 @@
-import { REGISTRY_ID, hiddenconstant } from './utilities.js'
+import { VERSION, REGISTRY_ID, hiddenconstant } from './utilities.js'
 import Base from './base.js'
 import Manager from './manager.js'
 import Resource from './actors/resource.js'
@@ -53,6 +53,10 @@ class Registry extends Base {
     this.#groups.relay(this)
     this.on('group.create', group => this.#groups.add(group))
     this.on('group.destroyed', group => this.#groups.delete(group))
+  }
+
+  get version () {
+    return VERSION
   }
 
   get configuration () {

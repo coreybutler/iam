@@ -1,4 +1,5 @@
-export const REGISTRY_ID = Symbol('IAM Registry')
+export const VERSION = '<#REPLACE_VERSION#>'
+export const REGISTRY_ID = Symbol(`IAM Registry ${VERSION}`)
 
 export const hiddenconstant = value => {
   return { enumerable: false, configurable: false, writable: false, value }

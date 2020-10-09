@@ -4,7 +4,7 @@ import Right from './lib/actors/right.js'
 import Role from './lib/actors/role.js'
 import User from './lib/actors/user.js'
 import Group from './lib/actors/group.js'
-import { REGISTRY_ID } from './lib/utilities.js'
+import { REGISTRY_ID, VERSION } from './lib/utilities.js'
 
 const everyone = Registry.createRole(Symbol.for('everyone'), {})
 everyone.description = 'Rights for any user of the system.'
@@ -17,5 +17,6 @@ export {
   Role,
   User,
   Group,
-  REGISTRY_ID
+  REGISTRY_ID,
+  VERSION
 }
