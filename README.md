@@ -520,7 +520,7 @@ In this case, the user is just part of a group that he probably shouldn't be a m
 
 Here is the actual output from the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic):
 
-![IAM Example Lineage](https://github.com/coreybutler/iam/raw/master/examples/IAM-lineage.png)
+![IAM Example Lineage](https://github.com/coreybutler/iam/raw/ce600d84c1237929fd63ed336de4c08e33001165/examples/IAM-lineage.png)
 
 The lineage/trace tool also supports explicitly denied rights (i.e. `deny:xxx`). It will return `null` if there is no lineage.
 
