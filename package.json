@@ -1,26 +1,25 @@
 {
-  "name": "@butlerlogic/iam",
-  "version": "1.0.1",
-  "description": "A simple identification and authorization management utility.",
-  "main": "src/main.js",
+  "name": "@author.io/iam",
+  "version": "1.0.0-alpha",
+  "description": "A Identification and Authorization Management library.",
+  "main": "src/index.js",
+  "module": "index.js",
+  "browser": "./index.js",
   "directories": {
     "lib": "src/lib"
   },
   "scripts": {
-    "test": "npm run test:node && npm run test:browser",
-    "start": "node src/index.js",
-    "build": "cd ./build && npm run all",
-    "build:node": "cd ./build && npm run node",
-    "build:browser": "cd ./build && npm run browser",
-    "test:node": "cd ./test && npm run node",
-    "test:browser": "cd ./test && npm run browser",
-    "reset": "echo Resetting test environments && cd ./test && npm run clean && cd ../build && npm run clean",
-    "manually": "cd ./test && npm run browser:manual:open",
-    "again": "cd ./test && npm run browser:manual",
-    "setup": "echo \"Installing build and test dependencies...\" && cd ./build && npm i --no-package-lock && cd ../test && npm i --no-package-lock && echo Template Setup Complete.",
-    "resetup": "node -e \"let fs=require('fs'),path=require('path');fs.rmdirSync(path.resolve('./build/node_modules'), { recursive: true });fs.rmdirSync(path.resolve('./test/node_modules'), { recursive: true });\" && npm run setup",
-    "report:compat": "cd ./test && npm run compat",
-    "report:syntax": "cd ./test && npm run syntax",
+    "start": "dev workspace",
+    "test": "npm run test:node && npm run test:deno && npm run test:browser && npm run report:syntax && npm run report:size",
+    "test:node": "dev test -rt node tests/*.js",
+    "test:node:sanity": "dev test -rt node tests/01-sanity.js",
+    "test:browser": "dev test -rt browser tests/*.js",
+    "test:deno": "dev test -rt deno tests/*.js",
+    "manually": "dev test -rt manual tests/*.js",
+    "build": "dev build",
+    "report:syntax": "dev report syntax --pretty",
+    "report:size": "dev report size ./.dist/**/*.js ./.dist/**/*.js.map",
+    "report:compat": "dev report compatibility ./src/**/*.js",
     "report:preview": "npm pack --dry-run && echo \"==============================\" && echo \"This report shows what will be published to the module registry. Pay attention to the tarball contents and assure no sensitive files will be published.\""
   },
   "keywords": [
@@ -29,9 +28,38 @@
     "authentication",
     "authorization",
     "auth",
-    "management"
+    "authz",
+    "management",
+    "rbac",
+    "oauth",
+    "oauth2",
+    "security",
+    "identification"
   ],
-  "author": "Corey Butler",
+  "author": {
+    "name": "Corey Butler",
+    "url": "https://github.com/coreybutler"
+  },
   "license": "MIT",
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@author.io/dev": "^1.1.0"
+  },
+  "standard": {
+    "globals": [
+      "globalThis",
+      "window",
+      "global"
+    ]
+  },
+  "dev": {
+    "verbose": true,
+    "replace": {
+      "<#REPLACE_VERSION#>": "package.version"
+    },
+    "alias": {
+      "@author.io/iam": "/app/.dist/iam/index.js",
+      "@author.io/iam-debug": "/app/.dist/iam-debug/index.js.map"
+    }
+  }
 }
