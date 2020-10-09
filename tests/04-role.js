@@ -76,7 +76,7 @@ test('Internal/Hard Coded Roles', t => {
 
   IAM.createResource('simple', ['create', 'read', 'update', 'delete'])
 
-  IAM.all({
+  IAM.everyone({
     simple: ['deny:create', 'read'],
     other: 'read'
   })

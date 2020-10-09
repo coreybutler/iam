@@ -75,7 +75,7 @@ test('Inherited Permissions', t => {
   IAM.removeResource()
   IAM.createResource('public', CRUD)
   IAM.createResource('adminportal', CRUD)
-  IAM.all({
+  IAM.everyone({
     public: '*',
     adminportal: 'deny:*'
   })

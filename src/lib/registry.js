@@ -404,7 +404,7 @@ class Registry extends Base {
    * of a reserved role: `everyone`.
    * @param  {Object} [acl={}]
    */
-  all (acl = {}) {
+  everyone (acl = {}) {
     const role = this.role('everyone')
 
     if (role) {
@@ -417,6 +417,11 @@ class Registry extends Base {
         role.revokeRights()
       }
     }
+  }
+
+  all () {
+    console.warn('IAM.all() is deprecated. Use IAM.everyone() instead.')
+    this.everyone(...arguments)
   }
 
   /**

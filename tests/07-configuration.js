@@ -13,7 +13,7 @@ test('Generate Configuration', t => {
     public: CRUD
   })
 
-  IAM.all({
+  IAM.everyone({
     public: '*',
     adminportal: 'deny:*'
   })
