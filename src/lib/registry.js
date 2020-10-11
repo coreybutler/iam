@@ -60,11 +60,91 @@ class Registry extends Base {
   }
 
   get configuration () {
+    function serializeRights (rights) {
+      return rights.map(r => {
+        return {
+          name: r.right === 'all' ? '*' : r.right.replace(':all', ':*'),
+          description: r.description
+        }
+      })
+    }
+
+    const roles = this.#roles.data.roles.map(r => {
+      const rights = {}
+      Object.keys(r.rights).forEach(name => { rights[name] = serializeRights(r.rights[name]).map(rt => rt.name) })
+      const result = {
+        name: r.name,
+        rights
+      }
+
+      if (r.description.trim().length > 0) {
+        result.description = r.description
+      }
+
+      return result
+    })
+
     const result = Object.assign({}, super.data, {
-      resources: this.#resources.data.resources,
-      roles: this.#roles.data.roles,
-      groups: this.#groups.data.groups,
-      users: this.#users.data.users
+      resources: this.#resources.data.resources.map(r => {
+        delete r.type
+        r.rights = serializeRights(r.rights)
+
+        if (!r.description || r.description.trim().length === 0) {
+          delete r.description
+        }
+
+        return r
+      }),
+      roles,
+      groups: this.#groups.data.groups.map(g => {
+        delete g.memberOf
+        delete g.type
+
+        if (g.description.trim().length === 0) {
+          delete g.description
+        }
+
+        if (g.members.length === 0) {
+          delete g.members
+        } else {
+          g.members = g.members.map(m => { return { name: m.name, type: m.type } })
+        }
+
+        g.roles = g.roles.map(r => r.name)
+        if (g.roles.length === 0) {
+          delete g.roles
+        }
+
+        return g
+      }),
+      users: this.#users.data.users.map(u => {
+        delete u.type
+
+        if (u.description.trim().length === 0) {
+          delete u.description
+        }
+
+        if (u.roles.length === 0) {
+          delete u.roles
+        }
+
+        if (u.groups.length === 0) {
+          delete u.groups
+        }
+
+        if (u.rights) {
+          const rights = {}
+          Object.keys(u.rights).forEach(name => { rights[name] = serializeRights(u.rights[name]).map(rt => rt.name) })
+
+          u.rights = rights
+
+          if (Object.keys(u.rights).length === 0) {
+            delete u.rights
+          }
+        }
+
+        return u
+      })
     })
 
     delete result.type
@@ -552,7 +632,7 @@ class Registry extends Base {
     if (cfg.resources) {
       for (const resource of cfg.resources) {
         const r = this.createResource(resource.name, resource.rights)
-        r.description = resource.description
+        r.description = resource.description || ''
       }
     }
 
@@ -583,7 +663,7 @@ class Registry extends Base {
           }
 
           if (Array.isArray(group.roles)) {
-            group.roles.forEach(r => g.assign(r.name))
+            group.roles.forEach(r => g.assign(r.name ? r.name : r))
           }
 
           if (Array.isArray(group.members) && group.members.filter(m => m.type === 'group').length > 0) {
@@ -616,7 +696,11 @@ class Registry extends Base {
         }
 
         if (Array.isArray(user.groups)) {
-          user.groups.forEach(g => u.join(g))
+          u.join(...user.groups)
+        }
+
+        if (typeof user.rights === 'object') {
+          u.setRight(user.rights)
         }
       }
     }

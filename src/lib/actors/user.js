@@ -67,9 +67,9 @@ export default class User extends Trace {
     })
 
     if (this.#explicitResourceRights.size > 0) {
-      result.assignedRights = {}
+      result.rights = {}
       for (const [resource, rights] of this.#explicitResourceRights.entries()) {
-        result.assignedRights[resource] = rights.map(r => r.data)
+        result.rights[resource] = rights.map(r => r.data)
       }
     }
 
