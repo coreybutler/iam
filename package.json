@@ -1,6 +1,6 @@
 {
   "name": "@author.io/iam",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "A Identification and Authorization Management library.",
   "main": "src/index.js",
   "module": "index.js",

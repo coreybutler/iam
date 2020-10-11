@@ -49,6 +49,27 @@ export default class Resource extends Base {
     })
   }
 
+  /**
+   * Indicates the resource has the named right.
+   * @param {string} right
+   * @return {boolean}
+   */
+  has (right) {
+    const name = right.split(':').pop()
+
+    if (name === '*' || name === 'all') {
+      return true
+    }
+
+    for (const perm of this.#rights) {
+      if (perm.name === name) {
+        return true
+      }
+    }
+
+    return false
+  }
+
   destroy () {
     for (const role of this.#roles) {
       role.revokeRights(this)

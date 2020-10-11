@@ -6,7 +6,7 @@ test('Basic Rights/Permissions', t => {
 
   t.expect('create', right.title, 'Reflects title.')
   t.expect(false, right.all, 'Explicit right not defined as *.')
-  t.expect(true, right.allowed, 'Granted by default.')
+  t.expect(true, right.granted, 'Granted by default.')
   t.expect(false, right.denied, 'Not denied by default.')
   t.expect(false, right.forced, 'Right is not forcibly applied.')
   t.expect(true, right.is('create'), 'Permission detected using "is" method.')
@@ -16,7 +16,7 @@ test('Basic Rights/Permissions', t => {
   t.expect('create', data.name, 'Serialization includes name value.')
   t.expect('Grant create privilege.', data.description, 'Serialization includes description value.')
   t.expect('create', data.right, 'Serialization includes "right" (permission label) value.')
-  t.expect(true, data.allowed, 'Serialization includes allow/deny value.')
+  t.expect(true, data.granted, 'Serialization includes allow/deny value.')
 
   t.end()
 })
@@ -26,7 +26,7 @@ test('Denied Rights/Permissions', t => {
 
   t.expect('create', right.title, 'Reflects title.')
   t.expect(false, right.all, 'Explicit right not defined as *.')
-  t.expect(false, right.allowed, 'Denied.')
+  t.expect(false, right.granted, 'Denied.')
   t.expect(true, right.denied, 'Denied by default.')
   t.expect(false, right.forced, 'Right is not forcibly applied.')
   t.expect(true, right.is('create'), 'Permission detected using "is" method.')
@@ -36,7 +36,7 @@ test('Denied Rights/Permissions', t => {
   t.expect('create', data.name, 'Serialization includes name value.')
   t.expect('Deny create privilege.', data.description, 'Serialization includes description value.')
   t.expect('deny:create', data.right, 'Serialization includes "right" (permission label) value.')
-  t.expect(false, data.allowed, 'Serialization includes allow/deny value.')
+  t.expect(false, data.granted, 'Serialization includes allow/deny value.')
 
   t.end()
 })
@@ -52,12 +52,12 @@ test('Right Configuration', t => {
   const right = new Right({
     name: 'create',
     description: 'Custom description',
-    allowed: true
+    granted: true
   })
 
   t.expect('create', right.title, 'Reflects title.')
   t.expect(false, right.all, 'Explicit right not defined as *.')
-  t.expect(true, right.allowed, 'Granted.')
+  t.expect(true, right.granted, 'Granted.')
   t.expect(false, right.denied, 'Granted by default.')
   t.expect(false, right.forced, 'Right is not forcibly applied.')
   t.expect(true, right.is('create'), 'Permission detected using "is" method.')
@@ -72,7 +72,7 @@ test('Wildcard Rights', t => {
 
   t.expect('All', right.title, 'Reflects title.')
   t.expect(true, right.all, 'Explicit right not defined as *.')
-  t.expect(false, right.allowed, 'Denied.')
+  t.expect(false, right.granted, 'Denied.')
   t.expect(true, right.denied, 'Denied by default.')
   t.expect(false, right.forced, 'Right is not forcibly applied.')
   t.expect(true, right.is('create'), 'Permission detected using "is" method.')
@@ -81,7 +81,7 @@ test('Wildcard Rights', t => {
   t.expect('*', data.name, 'Serialization includes name value.')
   t.expect('Deny all privileges.', data.description, 'Serialization includes description value.')
   t.expect('deny:all', data.right, 'Serialization includes any "right" (permission label) value.')
-  t.expect(false, data.allowed, 'Serialization includes allow/deny value.')
+  t.expect(false, data.granted, 'Serialization includes allow/deny value.')
 
   t.end()
 })

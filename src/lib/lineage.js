@@ -8,7 +8,7 @@ export default class Lineage {
   #group = null
   #resource = null
   #right = null
-  #allowed = true
+  #granted = true
   #forced = false
   #stack = []
   #permission = null
@@ -32,12 +32,12 @@ export default class Lineage {
     return 'lineage'
   }
 
-  get allowed () {
-    return this.#allowed
+  get granted () {
+    return this.#granted
   }
 
   get denied () {
-    return !this.#allowed
+    return !this.#granted
   }
 
   get hasRole () {
@@ -61,7 +61,7 @@ export default class Lineage {
 
     this.right = value[value.length - 1]
 
-    if (this.type === 'right') {
+    if (this.type === 'right' && value.length > 1) {
       value.pop()
     }
 
@@ -105,7 +105,7 @@ export default class Lineage {
       }
 
       if (item instanceof Right && item.is(this.#permission)) {
-        return `${item.name} (${item.denied ? 'right denied' : 'granted'}${item.name === '*' ? ' ' + this.#permission : ''})`
+        return `${item.name} (${stack.length === 1 ? 'explicitly ' : ''}${item.denied ? 'right denied' : 'granted'}${item.name === '*' ? ' ' + this.#permission : ''})`
       }
 
       if (item.type && item.type === 'group') {
@@ -126,7 +126,7 @@ export default class Lineage {
     const stack = this.stack.slice()
 
     if (stack.length === 0 || (stack.length === 1 && stack[0] instanceof Role && stack[0].name === 'everyone')) {
-      return `All users are ${this.allowed ? 'granted' : 'denied'} the "${this.#permission}" right on the "${this.#resource}" resource${stack.length > 0 ? ' by the "everyone" role' : ''}.`
+      return `All users are ${this.granted ? 'granted' : 'denied'} the "${this.#permission}" right on the "${this.#resource}" resource${stack.length > 0 ? ' by the "everyone" role' : ''}.`
     }
 
     if (stack.filter(item => item instanceof Right).length === 0) {
@@ -139,7 +139,7 @@ export default class Lineage {
       }
 
       if (item instanceof Right) {
-        return `The "${this.#permission}" right of the "${this.#resource.name}" resource is ${item.denied ? 'denied' : 'granted'}`
+        return `The "${this.#permission}" right of the "${this.#resource.name}" resource is${stack.length === 1 ? ' explicitly' : ''} ${item.denied ? 'denied' : 'granted'}${stack.length === 1 ? ' to the user' : ''}`
       }
 
       if (item.type && item.type === 'group') {
@@ -196,7 +196,7 @@ export default class Lineage {
       type: this.#stack[0].type,
       resource: this.#resource.name,
       right: this.#permission,
-      granted: this.#allowed,
+      granted: this.#granted,
       governedBy: {
         group: this.#group ? this.#group.name : null,
         role: this.#role ? this.#role.name : null,
@@ -208,15 +208,15 @@ export default class Lineage {
     }
   }
 
-  allow (force = false) {
+  grant (force = false) {
     if (force) {
       this.#forced = true
     }
 
-    this.#allowed = true
+    this.#granted = true
   }
 
   deny () {
-    this.#allowed = false
+    this.#granted = false
   }
 }

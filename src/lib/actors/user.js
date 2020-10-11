@@ -1,5 +1,7 @@
+import Right from './right.js'
 import Trace from '../trace.js'
 import { REGISTRY_ID, getRole, getResource, getGroup } from '../utilities.js'
+import Lineage from '../lineage.js'
 
 /**
  * Represents a user of the system.
@@ -8,6 +10,7 @@ export default class User extends Trace {
   #roles = new Set()
   #memberOf = new Set() // group membership
   #active = true
+  #explicitResourceRights = new Map()
 
   /**
    * @constructor
@@ -41,7 +44,7 @@ export default class User extends Trace {
             return new Set()
           }
 
-          const roles = this.#roles
+          const roles = new Set(Array.from(this.#roles).slice())
 
           for (const group of this.#memberOf) {
             for (const role of group.permissions) {
@@ -58,10 +61,19 @@ export default class User extends Trace {
   }
 
   get data () {
-    return Object.assign({}, super.data, {
+    const result = Object.assign({}, super.data, {
       roles: this.roleList.filter(i => i !== 'everyone'),
       groups: this.groupList
     })
+
+    if (this.#explicitResourceRights.size > 0) {
+      result.assignedRights = {}
+      for (const [resource, rights] of this.#explicitResourceRights.entries()) {
+        result.assignedRights[resource] = rights.map(r => r.data)
+      }
+    }
+
+    return result
   }
 
   get roles () {
@@ -91,6 +103,10 @@ export default class User extends Trace {
    */
   get disabled () {
     return !this.#active
+  }
+
+  get explicitRights () {
+    return Object.fromEntries(this.#explicitResourceRights)
   }
 
   /**
@@ -141,7 +157,7 @@ export default class User extends Trace {
   leave () {
     for (let group of arguments) {
       group = typeof group === 'string' ? group : group.name
-      group = getGroup(group)
+      group = getGroup(group, true)
 
       if (group) {
         if (group.has(this)) {
@@ -172,6 +188,27 @@ export default class User extends Trace {
         this.emit('role.assign', role)
       }
     }
+  }
+
+  assignRight (resource) {
+    if (typeof resource === 'object') {
+      for (const [res, rights] of Object.entries(resource)) {
+        this.assignExplicit(res, ...rights)
+      }
+
+      return
+    }
+
+    resource = getResource(resource, true)
+    const rights = Array.from(arguments).slice(1)
+
+    for (const right of rights) {
+      if (!resource.has(right)) {
+        throw new Error(`Invalid assignment. The "${resource.name}" resource does not have a "${right}" right.`)
+      }
+    }
+
+    this.#explicitResourceRights.set(resource.name, rights.map(r => new Right(r)))
   }
 
   /**
@@ -250,19 +287,43 @@ export default class User extends Trace {
     super.destroy()
   }
 
+  explicitAuthorization (resource) {
+    resource = getResource(resource, true)
+
+    const result = { force: false, granted: null }
+    const permissions = new Set(Array.from(arguments).slice(1))
+    const explicit = this.#explicitResourceRights.get(resource.name)
+
+    if (explicit) {
+      const rights = new Set(explicit.filter(r => permissions.has(r.name)))
+
+      for (const right of rights) {
+        result.force = true
+        result.granted = right.granted
+
+        if (!result.granted) {
+          return result
+        }
+      }
+    }
+
+    return result
+  }
+
   authorized (resource) {
     if (!this.#active) {
       return false
     }
 
-    resource = getResource(resource)
-
-    if (resource === null) {
-      return false
+    const explicit = this.explicitAuthorization(...arguments)
+    if (explicit.force) {
+      return explicit.granted
     }
 
-    const resourceRights = new Set(resource.rights.map(r => r.name))
+    resource = getResource(resource, true)
+
     const permissions = new Set(Array.from(arguments).slice(1))
+    const resourceRights = new Set(resource.rights.map(r => r.name))
 
     if (permissions.has('*')) {
       throw new Error('Invalid right: Cannot authorize a wildcard (*). Please use a named right/permission, such as "create" or "delete".')
@@ -299,14 +360,14 @@ export default class User extends Trace {
         }
 
         const current = result[permission]
-        if (!current || (!current.forced && right.allowed) || (!right.forced && right.allowed)) {
+        if (!current || (!current.forced && right.granted) || (!right.forced && right.granted)) {
           result[permission] = right
         }
       }
     }
 
     const preResult = Object.values(result)
-    return preResult.length === 0 ? false : preResult.filter(r => !r.allowed).length === 0
+    return preResult.length === 0 ? false : preResult.filter(r => !r.granted).length === 0
   }
 
   /**
@@ -320,8 +381,17 @@ export default class User extends Trace {
    * @return {Lineage}
    */
   trace (resource, right) {
+    const explicit = this.explicitAuthorization(resource, right)
+
+    if (explicit.force) {
+      const lineage = new Lineage(...arguments)
+      const explicitRight = new Right(right.indexOf(':') >= 0 ? right : 'allow:' + right)
+
+      lineage.stack = [explicitRight]
+
+      return lineage
+    }
+
     return super.trace(resource, right, { items: Array.from(this.#roles) }, this.#memberOf)
   }
 }
-
-// TODO: trace lineage

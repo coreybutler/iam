@@ -213,11 +213,7 @@ export default class Group extends Trace {
    */
   assign () {
     for (const role of arguments) {
-      const assignedRole = globalThis[REGISTRY_ID].role(role)
-
-      if (!assignedRole || assignedRole.type !== 'role') {
-        throw new Error(`Cannot assign "${assignedRole}" (${assignedRole.type ? assignedRole.type : 'unknown type'}) to "${this.name}" group because it is not a recognized role.`)
-      }
+      const assignedRole = getRole(role, true)
 
       if (!this.#roles.has(assignedRole)) {
         this.#roles.add(assignedRole)
@@ -343,6 +339,8 @@ export default class Group extends Trace {
 
       this.emit('clear.roles')
     }
+
+    return this
   }
 
   clearSubgroups () {
@@ -350,6 +348,8 @@ export default class Group extends Trace {
       this.remove(...this.subgroups)
       this.emit('clear.subgroups')
     }
+
+    return this
   }
 
   clearUsers () {
@@ -357,6 +357,8 @@ export default class Group extends Trace {
       this.remove(...this.users)
       this.emit('clear.users')
     }
+
+    return this
   }
 
   has (element) {
@@ -373,6 +375,8 @@ export default class Group extends Trace {
     }
 
     super.destroy()
+
+    return this
   }
 
   /**

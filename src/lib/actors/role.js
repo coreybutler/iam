@@ -146,7 +146,7 @@ export default class Role extends Base {
 
     for (const permission of rights) {
       if (permission.is(right)) {
-        return permission.allowed
+        return permission.granted
       }
     }
 

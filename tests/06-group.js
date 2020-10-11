@@ -1,13 +1,11 @@
 import test from 'tappedout'
 import IAM, { User, Group } from '@author.io/iam'
 
-const CRUD = ['create', 'read', 'update', 'delete']
-
 test('Basic Group Roles', t => {
   IAM.createResource({
-    blog: CRUD,
-    users: CRUD,
-    portal: CRUD
+    blog: IAM.CRUD,
+    users: IAM.CRUD,
+    portal: IAM.CRUD
   })
 
   IAM.createRole('admin', {
@@ -73,15 +71,17 @@ test('Membership', t => {
 
 test('Inherited Permissions', t => {
   IAM.removeResource()
-  IAM.createResource('public', CRUD)
-  IAM.createResource('adminportal', CRUD)
+  IAM.createResource('public', IAM.CRUD)
+  IAM.createResource('adminportal', IAM.CRUD)
   IAM.everyone({
     public: '*',
     adminportal: 'deny:*'
   })
+
   IAM.createRole('administrator_role', {
     adminportal: ['allow:read', 'allow:update']
   })
+
   IAM.createRole('god_role', {
     adminportal: 'allow:*'
   })
@@ -98,7 +98,6 @@ test('Inherited Permissions', t => {
 
   // Assign god role to god group
   god.assign('god_role')
-
   t.ok(IAM.currentUser.authorized('public', 'read'), 'Basic allowed rights applied.')
   t.ok(!IAM.currentUser.authorized('adminportal', 'read'), 'Basic denied rights applied.')
 
@@ -112,13 +111,12 @@ test('Inherited Permissions', t => {
   IAM.currentUser.join(god)
   t.ok(IAM.currentUser.authorized('adminportal', 'read'), 'Highest level rights applied.')
   t.ok(IAM.currentUser.authorized('adminportal', 'create'), 'Overridden rights applied.')
-
   t.end()
 })
 
 test('Group Lineage', t => {
-  const portalLineage = IAM.group('god').trace('adminportal', 'create')
-  const { data, display, description, allowed, denied, forced } = portalLineage
+  const lineage = IAM.group('god').trace('adminportal', 'create')
+  const { data, display, description, granted, denied, forced } = lineage
 
   t.expect('group', data.type, 'Recognizes lineage originates from group membership.')
   t.expect('adminportal', data.resource, 'Lineage identifies resource.')
@@ -131,7 +129,7 @@ test('Group Lineage', t => {
   t.expect('god (group) --> god_role (role) --> * (granted create)', data.display, 'Describe lineage (data).')
   t.expect('god (group) --> god_role (role) --> * (granted create)', display, 'Describe lineage (attribute).')
   t.expect(`The "create" right of the "adminportal" resource is granted by the "god_role" role, which is inherited from the "god" group, which the user is a member of.`, description, 'Verbose description.')
-  t.ok(allowed, 'Allowed attribute reflects permission.')
+  t.ok(granted, 'Granted attribute reflects permission.')
   t.ok(!denied, 'Denied attribute reflects permission.')
   t.ok(forced, 'Forced permission recognized.')
 
@@ -140,7 +138,7 @@ test('Group Lineage', t => {
 
 test('Group Member Lineage', t => {
   const lineage = IAM.currentUser.trace('adminportal', 'create')
-  const { data, display, description, allowed, denied, forced } = lineage
+  const { data, display, description, granted, denied, forced } = lineage
 
   t.expect('user', data.type, 'Recognize lineage originates from user.')
   t.expect('create', data.right, 'Recognized right.')
@@ -152,7 +150,7 @@ test('Group Member Lineage', t => {
   t.expect('Demo User (user) --> god (group) --> god_role (role) --> * (granted create)', data.display, 'Describe lineage (data).')
   t.expect('Demo User (user) --> god (group) --> god_role (role) --> * (granted create)', display, 'Describe lineage (attribute).')
   t.expect(`The "create" right of the "adminportal" resource is granted by the "god_role" role, which is inherited from the "god" group, which the user is a member of.`, description, 'Lineage description is relative to user.')
-  t.ok(allowed, 'Allowed attribute reflects permission.')
+  t.ok(granted, 'Granted attribute reflects permission.')
   t.ok(!denied, 'Denied attribute reflects permission.')
   t.ok(forced, 'Forced permission recognized.')
 

@@ -3,7 +3,7 @@ import Lineage from './lineage.js'
 
 const track = (self, data, role, permission) => {
   data.role = role
-  data[permission.denied ? 'deny' : 'allow'](permission.forced)
+  data[permission.denied ? 'deny' : 'grant'](permission.forced)
   data.stack = self.type === 'group' ? [self, role, permission] : [role, permission]
 
   if (self.type === 'group') {
@@ -36,7 +36,7 @@ export default class Trace extends Base {
             return track(this, data, role, permission)
           }
 
-          track(this, data, role, permission)
+          data = track(this, data, role, permission)
         } else if (data.role === undefined) {
           data = track(this, data, role, permission)
         }
@@ -47,19 +47,19 @@ export default class Trace extends Base {
     for (const group of membership) {
       const lineage = group.trace(...arguments)
 
-      if (lineage && (data.role === undefined || lineage.forced || !data.allowed)) {
+      if (lineage && (data.role === undefined || lineage.forced || !data.granted)) {
         data.stack = [...[this], ...lineage.stack]//, ...data.stack]
         data.role = lineage.role
         data.group = this
 
         if (lineage.forced) {
-          data.allow(true)
+          data.grant(true)
           return data
         }
 
-        if (data.allowed !== lineage.allowed) {
-          if (lineage.allowed) {
-            data.allow()
+        if (data.granted !== lineage.granted) {
+          if (lineage.granted) {
+            data.grant()
           } else {
             data.deny()
           }

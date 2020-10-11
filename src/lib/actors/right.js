@@ -34,8 +34,8 @@ export default class Right extends Base {
       }
 
       if (typeof name === 'object' && (name.right !== undefined || name.name !== undefined)) {
-        if (name.allowed !== undefined && typeof name.allowed === 'boolean') {
-          this.#granted = name.allowed
+        if (name.granted !== undefined && typeof name.granted === 'boolean') {
+          this.#granted = name.granted
         }
 
         if (name.description !== undefined) {
@@ -58,7 +58,7 @@ export default class Right extends Base {
     this.#permission = PARSER.length > 0 ? PARSER[0] : null
     this.#displayName = label === '*' ? 'All' : label.trim()
     this.#overridable = this.#permission === 'allow'
-    this.#granted = name.allowed !== undefined ? this.#granted : this.#permission !== 'deny'
+    this.#granted = name.granted !== undefined ? this.#granted : this.#permission !== 'deny'
 
     this.name = label.trim().toLowerCase()
   }
@@ -71,7 +71,7 @@ export default class Right extends Base {
     return this.name === '*'
   }
 
-  get allowed () {
+  get granted () {
     return this.#granted
   }
 
@@ -85,9 +85,9 @@ export default class Right extends Base {
 
   get data () {
     return Object.assign(super.data, {
-      description: this.description || `${this.allowed ? 'Grant' : 'Deny'} ` + (this.all ? 'all privileges.' : `${this.name} privilege.`),
+      description: this.description || `${this.granted ? 'Grant' : 'Deny'} ` + (this.all ? 'all privileges.' : `${this.name} privilege.`),
       right: ((this.#permission ? `${this.#permission}:` : '') + this.#displayName).trim().toLowerCase(),
-      allowed: this.allowed,
+      granted: this.granted,
       forced: this.forced
     })
   }
