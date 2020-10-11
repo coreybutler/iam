@@ -190,7 +190,12 @@ export default class User extends Trace {
     }
   }
 
-  assignRight (resource) {
+  setRight (resource) {
+    if (!resource) {
+      this.#explicitResourceRights = new Map()
+      return this
+    }
+
     if (typeof resource === 'object') {
       for (const [res, rights] of Object.entries(resource)) {
         this.assignExplicit(res, ...rights)
@@ -202,13 +207,25 @@ export default class User extends Trace {
     resource = getResource(resource, true)
     const rights = Array.from(arguments).slice(1)
 
+    if (rights.length === 0) {
+      this.#explicitResourceRights.delete(resource)
+      return this
+    }
+
     for (const right of rights) {
+      if (right === null) {
+        this.#explicitResourceRights.delete(resource)
+        return this
+      }
+
       if (!resource.has(right)) {
         throw new Error(`Invalid assignment. The "${resource.name}" resource does not have a "${right}" right.`)
       }
     }
 
     this.#explicitResourceRights.set(resource.name, rights.map(r => new Right(r)))
+
+    return this
   }
 
   /**

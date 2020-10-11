@@ -353,20 +353,42 @@ The code above states "if the user has the manage right on the admin portal, ena
 
 See the group section below.
 
-### Explicit Permissions
+### Explicit User Permissions
 
 It is possible to explicitly assign a right(s) directly to a user, overriding any group/role assignments the user may
-be associated with. To do this, use the `assignRight` method.
+be associated with. To do this, use the `setRight` method.
 
 ```javascript
 // Explicitly grant the user view rights on the portal resource.
-IAM.currentUser.assignRight('portal', 'view')
+IAM.currentUser.setRight('portal', 'view')
 
 // Explicitly deny the user view rights on the administrator resource.
-IAM.currentUser.assignRight('administrator', 'deny:view')
+IAM.currentUser.setRight('administrator', 'deny:view')
+
+// Do both at the same time, and also deny managing the portal.
+IAM.currentUser.setRight({
+  portal: 'deny:view',
+  asministrator: ['deny:view', 'deny:managerusers']
+})
 ```
 
 This feature can be very powerful, but should be used sparingly/only as necessary. Explicit rights override all other permissions, but have no flexibility the way roles and groups do. Explicit rights are kind of the "blunt hammer" way of enforcing a specific access control.
+
+> **Take note:** Rights are not accrued by resource. If
+> this method is run more than once for the same resource,
+> the rights for that resource will only reflect the
+> latest update.
+
+Setting a right to `null` will remove the explicit right.
+
+```javascript
+// Destroy the explicit portal right
+IAM.currentUser.setRight('portal', null)
+
+// Destroy all explicit user rights
+IAM.currentUser.setRight(null)
+IAM.currentUser.setRight()
+```
 
 ## Group Management
 

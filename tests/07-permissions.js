@@ -21,7 +21,7 @@ test('Explicitly Assigned Rights', t => {
 
   IAM.createUser('basic_users')
   IAM.currentUser.assign('super_users')
-  IAM.currentUser.assignRight('portal', 'allow:manage')
+  IAM.currentUser.setRight('portal', 'allow:manage')
 
   t.ok(IAM.currentUser.authorized('portal', 'manage'), 'Explicit rights applied first.')
 
