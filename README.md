@@ -1,4 +1,4 @@
-<h1 align="center">IAM</br><em align="center">Identification and Authorization Management</em></h1>
+<h1 align="center">IAM</br><em align="center">Identification and Access Management</em></h1>
 
 <h5 align="center">
 Share with your developer network using a quick <a href="https://twitter.com/intent/tweet?hashtags=javascript&original_referer=http%3A%2F%2F127.0.0.1%3A91%2F&text=Check%20out%20IAM%20for%20securing%20websites%20and%20APIs&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Fcoreybutler%2Fiam&via=goldglovecb">tweet</a>.
@@ -73,7 +73,7 @@ Just like proper sentences, **code shouldn't have "run on" logic**. Being a ment
 
 The code for this is available in the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic).
 
-![IAM Example UI](https://github.com/coreybutler/iam/raw/master/examples/basic/IAM.png)
+![IAM Example UI](https://github.com/coreybutler/iam/raw/ce600d84c1237929fd63ed336de4c08e33001165/examples/basic/IAM.png)
 
 
 ### Example Node API
@@ -82,7 +82,7 @@ The code for this is available in the [api example](https://github.com/coreybutl
 
 In this example, `requireAuthorization` is Express middleware that maps to IAM's `user.authorize()` method.
 
-![IAM Example API](https://github.com/coreybutler/iam/raw/master/examples/api/api_example.png)
+![IAM Example API](https://github.com/coreybutler/iam/raw/ce600d84c1237929fd63ed336de4c08e33001165/examples/api/api_example.png)
 
 ---
 
@@ -557,7 +557,7 @@ In this case, the user is just part of a group that he probably shouldn't be a m
 
 Here is the actual output from the [basic example](https://github.com/coreybutler/iam/tree/master/examples/basic):
 
-![IAM Example Lineage](https://github.com/coreybutler/iam/raw/master/examples/IAM-lineage.png)
+![IAM Example Lineage](https://github.com/coreybutler/iam/raw/ce600d84c1237929fd63ed336de4c08e33001165/examples/IAM-lineage.png)
 
 The lineage/trace tool also supports explicitly denied rights (i.e. `deny:xxx`). It will return `null` if there is no lineage.
 
