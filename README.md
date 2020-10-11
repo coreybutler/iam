@@ -29,7 +29,7 @@ if (user.authorized('system resource', 'view')) {
         </li>
         <li>This was originally released as a library for <a href="https://butlerlogic.com" target="_blank">Butler Logic</a> clients. Fortunately, it has become a more generic tool, available for a general audience. As such, we've moved the package from <code>@butlerlogic/iam</code> to <code>@author.io/iam</code>. The Author npm organization is more suitable for long term support.</li>
       </ol>
-      <p>This release also introduced 195 unit tests.</p>
+      <p>This release also introduced 200+ unit tests.</p>
     </td>
   </tr>
 </table>
