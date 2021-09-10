@@ -488,7 +488,7 @@ In the following example, a system resource called `admin portal` exists, but ev
 ```javascript
 // Create a system resource and rights.
 IAM.createResource({
-  'admin portal', ['view', 'manage']
+  'admin portal': ['view', 'manage']
 })
 
 // Deny admin portal rights for everyone.
