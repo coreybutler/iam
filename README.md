@@ -139,10 +139,10 @@ A guide and high level API documentation are below. **See the source code for ad
 
 ```javascript
 // Browser/Deno Runtime
-import IAM, { Resource, Role, Group User, Right } from 'https://cdn.jsdelivr.net/npm/@author.io/iam/index.min.js'
+import IAM, { Resource, Role, Group, User, Right } from 'https://cdn.jsdelivr.net/npm/@author.io/iam/index.min.js'
 
 // Node Runtime
-import IAM, { Resource, Role, Group User, Right } from '@author.io/iam'
+import IAM, { Resource, Role, Group, User, Right } from '@author.io/iam'
 ```
 
 `npm install @author.io/iam -S`
