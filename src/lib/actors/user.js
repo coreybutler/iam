@@ -277,7 +277,7 @@ export default class User extends Trace {
       return true
     }
 
-    for (const group of this.#memberOf.entries()) {
+    for (const group of this.#memberOf.valuees()) {
       if (group.permitted(role)) {
         return true
       }
@@ -297,7 +297,7 @@ export default class User extends Trace {
    * Destroy relations to the user.
    */
   destroy () {
-    for (const group of this.#memberOf.entries()) {
+    for (const group of this.#memberOf.values()) {
       group.remove(this)
     }
 

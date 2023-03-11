@@ -366,11 +366,11 @@ export default class Group extends Trace {
   }
 
   destroy () {
-    for (const group of this.#memberOf.entries()) {
+    for (const group of this.#memberOf.values()) {
       group.remove(this)
     }
 
-    for (const user of this.#members.entries()) {
+    for (const user of this.#members.values()) {
       user.leave(this)
     }
 
