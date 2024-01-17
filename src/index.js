@@ -1,22 +1,57 @@
-import Registry from './lib/registry.js'
-import Resource from './lib/actors/resource.js'
-import Right from './lib/actors/right.js'
-import Role from './lib/actors/role.js'
-import User from './lib/actors/user.js'
-import Group from './lib/actors/group.js'
-import { REGISTRY_ID, VERSION } from './lib/utilities.js'
+import System from './System.js'
 
-const everyone = Registry.createRole(Symbol.for('everyone'), {})
-everyone.description = 'Rights for any user of the system.'
+const system = new System({
+  name: 'Test',
+  description: 'This is a test System.',
 
-export {
-  Registry as default,
-  Registry as IAM,
-  Resource,
-  Right,
-  Role,
-  User,
-  Group,
-  REGISTRY_ID,
-  VERSION
-}
+  // resources: [{
+  //   name: 'Test Resource',
+  //   description: 'This is a test Resource.',
+  //   rights: [{
+  //     name: 'read',
+  //     description: 'You can read stuff. FAT'
+  //   }, 'write']
+  // }, {
+  //   name: 'Test Resource 2',
+  //   description: 'This is a test Resource.',
+  //   rights: [{
+  //     name: 'read',
+  //     description: 'You can read stuff. FAT'
+  //   }, 'write']
+  // }],
+
+  // groups: [{
+  //   name: 'Test Group',
+  //   description: 'This is a test Group.',
+  //   roles: []
+  // }],
+
+  // roles: [{
+  //   name: 'Test Role',
+  //   description: 'This is a test Role.',
+  //   rights: {
+  //     'Test Resource': 'read'
+  //   }
+  // }],
+
+  // users: [{
+  //   name: 'Graham Butler',
+  //   roles: ['Test Role'],
+  //   rights: {
+  //     'Test Resource': 'write'
+  //   }
+  // }]
+})
+
+system.addResource({
+  name: 'Test Resource',
+  description: 'A Resource for testing.'
+})
+
+console.log(system.toString())
+
+// const resource = system.getResource('Test Resource')
+// resource.removeRight('Hello')
+
+// const role = system.getRole('Test Role')
+// role.unsetRight('Test Resource', 'read')
