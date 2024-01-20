@@ -6,15 +6,10 @@ export default class AuthorizationManagingEntity extends Entity {
 
   constructor (type, domain, parent, { name, description, rights = {}, ttl }, weights) {
     super(type, domain, parent, { name, description, ttl })
-
     this.#authorizations = new AuthorizationManager(domain, this, weights)
 
-    const set = (...args) => this.#authorizations.set(...args)
-
     for (const [resource, spec] of Object.entries(rights)) {
-      Array.isArray(spec)
-        ? spec.forEach(spec => set(resource, spec))
-        : set(resource, spec)
+      [...(Array.isArray(spec) ? spec : [spec])].forEach(spec => this.#authorizations.set(resource, spec))
     }
   }
 

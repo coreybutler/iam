@@ -28,7 +28,12 @@ export default class Domain extends Entity {
   getGroup = name => this.#groups.get(name)
   findGroups = ({ name, id }) => {}
   hasGroup = name => this.#groups.has(name)
-  removeGroup = name => this.#groups.remove(name)
+  
+  removeGroup (name, removeMembers = true) {
+    // TODO: Remove members
+
+    this.#groups.remove(name)
+  }
 
   addRole = cfg => this.#roles.add(cfg)
   getRole = name => this.#roles.get(name)

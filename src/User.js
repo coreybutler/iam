@@ -11,16 +11,26 @@ export default class User extends AuthorizationManagingEntity {
       'always allow': 9,
       'always deny': 9
     })
+
+    for (let role of cfg.roles ?? []) {
+      this.#roles.push(role)
+    }
   }
 
   destroy = () => this.domain.removeUser(this.name)
+
+  assignGroup (group) {
+    console.log('JOIN GROUP', group)
+  }
 
   assignRole (role) {
     console.log('ASSIGN ROLE', role)
   }
 
   isAuthorized (resource, right) {
-    return super.isAuthorized(...arguments) || this.#roles.some(role => role.isAuthorized(...arguments))
+    return super.isAuthorized(...arguments)
+      || this.#roles.some(role => this.domain.getRole(role)?.isAuthorized(...arguments))
+      || this.#groups.some(group => this.domain.getGroup(group)?.isAuthorized(...arguments))
   }
 
   isInGroup (group) {
@@ -31,11 +41,7 @@ export default class User extends AuthorizationManagingEntity {
     console.log(this)
   }
 
-  joinGroup (group) {
-    console.log('JOIN GROUP', group)
-  }
-
-  leaveGroup (group) {
+  unassignGroup (group) {
     console.log('LEAVE GROUP', group)
   }
 

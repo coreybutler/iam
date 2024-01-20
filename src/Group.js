@@ -5,5 +5,5 @@ export default class Group extends Entity {
     super('Group', ...arguments)
   }
 
-  destroy = () => this.domain.removeGroup(this.name)
+  destroy = (removeMembers = true) => this.domain.removeGroup(this.name, removeMembers)
 }

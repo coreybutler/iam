@@ -1,8 +1,5 @@
+import Authorization from './Authorization.js'
 import Component from './Component.js'
-
-class Authorization extends Component {
-
-}
 
 export default class AuthorizationManager extends Component {
   #weights
@@ -10,7 +7,7 @@ export default class AuthorizationManager extends Component {
 
   constructor (domain, parent, weights) {
     super('Authorization Manager', domain, parent)
-    this.#weights = weights
+    this.#weights = new Map(Object.entries(weights))
   }
 
   has (resource, right) {
@@ -32,51 +29,38 @@ export default class AuthorizationManager extends Component {
       this.#resources.set(resource, rights)
     }
 
-    const [relationship, right] = spec.includes(':') ? spec.split(':') : ['allow', spec]
-    let relationships = rights.get(right)
-    
-    if (!relationships) {
-      relationships = new Set
-      rights.set(right, relationships)
-    }
-
-    relationships.add(relationship)
+    return this.#setAuthorization(...arguments, rights)
   }
 
   toJSON () {
-    return {
-      ...Object.fromEntries([...this.#resources.entries()].map(([resource, rights]) => {
-        return [resource, [...rights.entries()].reduce((result, [right, relationships]) => {
-          result.push(...[...relationships].map(relationship => `${relationship}:${right}`))
-          return result
-        }, [])]
-      }))
-    }
+    return Object.fromEntries([...this.#resources.entries()].map(([resource, rights]) => {
+      return [resource, [...rights.entries()].reduce((result, [right, authorizations]) => {
+        authorizations.forEach(({ type }) => result.push(`${type}:${right}`))
+        return result
+      }, [])]
+    }))
   }
 
   unset (resource, spec) {
     if (!this.domain.hasResource(resource)) return this.#logMissingResourceError('unset', spec, resource)
     
     const rights = this.#resources.get(resource),
-          [relationship, right] = spec.includes(':') ? spec.split(':') : ['allow', spec]
+          [authorization, right] = spec.includes(':') ? spec.split(':') : ['allow', spec]
 
     if (!rights) return this.domain.logError(
-      `Cannot unset Right "${relationship}:${right}" from ${this.parent.type} "${this.parent.name}" on Resource "${resource}"; Resource "${resource}" is not associated with ${this.parent.type} "${this.parent.name}".`
+      `Cannot unset Right "${authorization}:${right}" from ${this.parent.type} "${this.parent.name}" on Resource "${resource}"; Resource "${resource}" is not associated with ${this.parent.type} "${this.parent.name}".`
     )
 
-    const relationships = rights.get(right)
+    const authorizations = rights.get(right)
 
-    if (!relationships) return this.#logUnsetRightError(spec, resource, `Right "${right}" is not associated with ${this.parent.type} "${this.parent.name}"`)
-    if (!relationships.has(relationship)) return this.#logUnsetRightError(spec, resource, `Relationship "${relationship}" has not been associated with Right "${right}" on this ${this.parent.type}.`)
+    if (!authorizations) return this.#logUnsetRightError(spec, resource, `Right "${right}" is not associated with ${this.parent.type} "${this.parent.name}"`)
+    if (!authorizations.has(authorization)) return this.#logUnsetRightError(spec, resource, `Relationship "${authorization}" has not been associated with Right "${right}" on this ${this.parent.type}.`)
 
-    relationships.delete(relationship)
+    authorizations.delete(authorization)
   }
 
   #getTrumpingAuthorization (authorizations) {
-    return [...authorizations].sort((a, b) => {
-      a = this.#weights[a]
-      b = this.#weights[b]
-      
+    return [...authorizations].sort(({ weight: a }, { weight: b }) => {
       if (a > b) return -1
       if (a < b) return 1
 
@@ -86,7 +70,7 @@ export default class AuthorizationManager extends Component {
 
   #has (rights, right) {
     const authorizations = rights.get(right)
-    return authorizations ? this.#getTrumpingAuthorization(authorizations).includes('allow') : false
+    return authorizations ? this.#getTrumpingAuthorization(authorizations).type.includes('allow') : false
   }
 
   #logMissingResourceError = (action, spec, resource) => this.domain.logError(`Cannot ${action} Right "${spec}" on unknown Resource "${resource}".`)
@@ -94,4 +78,18 @@ export default class AuthorizationManager extends Component {
   #logUnsetRightError = (right, resource, message) => this.domain.logError(
     `Cannot unset Right "${right}" from ${this.parent.type} "${this.parent.name}" on Resource "${resource}"; ${message}`
   )
+
+  #setAuthorization (resource, spec, rights) {
+    let authorization = new Authorization(this.domain, this.parent, resource, spec, this.#weights),
+        { right } = authorization,
+        authorizations = rights.get(right)
+    
+    if (!authorizations) {
+      authorizations = new Set
+      rights.set(right, authorizations)
+    }
+
+    authorizations.add(authorization)
+    return authorization
+  }
 }

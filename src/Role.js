@@ -4,11 +4,11 @@ export default class Role extends AuthorizationManagingEntity {
   constructor (domain, parent, cfg) {
     super('Role', domain, parent, cfg, {
       'allow': 1,
-      'important allow': 4,
-      'very important allow': 8,
+      'priority allow': 4,
+      'high priority allow': 8,
       'deny': 2,
-      'important deny': 3,
-      'very important deny': 7
+      'priority deny': 3,
+      'high priority deny': 7
     })
   }
 
