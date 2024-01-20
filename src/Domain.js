@@ -4,55 +4,45 @@ import ResourceManager from './ResourceManager.js'
 import RoleManager from './RoleManager.js'
 import UserManager from './UserManager.js'
 
-export default class System extends Entity {
+export default class Domain extends Entity {
   #resources
   #roles
   #groups
   #users
 
   constructor ({ name, description, resources = [], groups = [], roles = [], users = [] }) {
-    super('System', null, null, { name, description })
-
-    this.#resources = new ResourceManager(this)
-    this.#roles = new RoleManager(this)
-    this.#groups = new GroupManager(this)
-    this.#users = new UserManager(this)
-
-    ;[
-      [resources, this.#resources],
-      [groups, this.#groups],
-      [roles, this.#roles],
-      [users, this.#users]
-    ].forEach(([collection, destination]) => {
-      for (const item of collection) {
-        destination.add(item)
-      }  
-    })
+    super('Domain', null, null, { name, description })
+    this.#resources = new ResourceManager(this, this, resources)
+    this.#roles = new RoleManager(this, this, roles)
+    this.#groups = new GroupManager(this, this, groups)
+    this.#users = new UserManager(this, this, users)
   }
 
-  addResource = (name, cfg) => this.#resources.add(name, cfg)
+  addResource = cfg => this.#resources.add(cfg)
   getResource = name => this.#resources.get(name)
+  findResources = ({ name, id }) => {}
   hasResource = name => this.#resources.has(name)
   removeResource = name => this.#resources.remove(name)
 
-  addGroup = (name, cfg) => this.#groups.add(name, cfg)
+  addGroup = cfg => this.#groups.add(cfg)
   getGroup = name => this.#groups.get(name)
+  findGroups = ({ name, id }) => {}
   hasGroup = name => this.#groups.has(name)
   removeGroup = name => this.#groups.remove(name)
 
-  addRole = (name, cfg) => this.#roles.add(name, cfg)
+  addRole = cfg => this.#roles.add(cfg)
   getRole = name => this.#roles.get(name)
+  findRoles = criteria => this.#roles.find(criteria)
   hasRole = name => this.#roles.has(name)
   removeRole = name => this.#roles.remove(name)
 
-  addUser = (name, cfg) => this.#users.add(name, cfg)
+  addUser = cfg => this.#users.add(cfg)
+  findUsers = criteria => this.#users.find(criteria)
   getUser = name => this.#users.get(name)
   hasUser = name => this.#users.has(name)
   removeUser = name => this.#users.remove(name)
 
-  logError (error) {
-    console.error(`System "${this.name}" error: ${error}`)
-  }
+  logError = error => console.error(`Domain "${this.name}" error: ${error}`)
 
   toJSON () {
     return {
@@ -62,5 +52,9 @@ export default class System extends Entity {
       roles: this.#roles.toJSON(),
       users: this.#users.toJSON()
     }
+  }
+
+  trace () {
+    console.log('TODO: Trace lineage of specified elements')
   }
 }

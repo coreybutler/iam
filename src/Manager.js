@@ -5,17 +5,29 @@ export default class Manager extends Component {
   #map = new Map
   #type
 
-  constructor (type, ItemConstructor, system, parent) {
-    super(system, parent ?? system)
+  constructor (type, ItemConstructor, domain, parent, items) {
+    super(type, domain, parent)
     this.#ItemConstructor = ItemConstructor
     this.#map
     this.#type = type
+
+    for (const item of items ?? []) {
+      this.add(item)
+    }  
   }
 
   add (cfg) {
-    const item = new this.#ItemConstructor(this.system, this.parent, cfg)
-    this.#map.set(item.name, item)
-    return item
+    if (this.#map.has(cfg.name)) return this.domain.logError(`${this.#type} Manager already has a ${this.#type} named "${cfg.name}"`)
+    const item = new this.#ItemConstructor(this.domain, this.parent, cfg)
+    return (this.#map.set(item.name, item), item)
+  }
+
+  create (cfg) {
+    console.log(...arguments);
+  }
+
+  find (filterFn) {
+    return [...this.#map.values()].filter(filterFn)
   }
 
   get = name => this.#map.get(name)
@@ -27,7 +39,7 @@ export default class Manager extends Component {
     return item
       ? this.#map.delete(name)
       // TODO: Throw here?
-      : this.system.logError(`Cannot remove ${this.#type} "${name}" from ${this.parent.type} "${this.parent.name}"; "${name}" is not associated with "${this.parent.name}"`)
+      : this.domain.logError(`Cannot remove ${this.#type} "${name}" from ${this.parent.type} "${this.parent.name}"; "${name}" is not associated with "${this.parent.name}"`)
   }
 
   toJSON () {

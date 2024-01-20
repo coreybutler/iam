@@ -1,16 +1,16 @@
-import RightRelationshipManagingEntity from './RightRelationshipManagingEntity.js'
+import AuthorizationManagingEntity from './AuthorizationManagingEntity.js'
 
-export default class Role extends RightRelationshipManagingEntity {
-  #rights
-  
-  constructor (system, parent, cfg) {
-    super('Role', system, parent, cfg, {
+export default class Role extends AuthorizationManagingEntity {
+  constructor (domain, parent, cfg) {
+    super('Role', domain, parent, cfg, {
       'allow': 1,
-      'allow!': 4,
-      'allow!!': 8,
+      'important allow': 4,
+      'very important allow': 8,
       'deny': 2,
-      'deny!': 3,
-      'deny!!': 7
+      'important deny': 3,
+      'very important deny': 7
     })
   }
+
+  destroy = () => this.domain.removeRole(this.name)
 }

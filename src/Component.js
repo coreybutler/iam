@@ -1,17 +1,32 @@
-export default class Component {
-  #parent
-  #system
+import EventEmitter from './EventEmitter.js'
 
-  constructor (system, parent) {
+export default class Component extends EventEmitter {
+  #domain
+  #parent
+  #type
+
+  constructor (type, domain, parent, ttl) {
+    super()
+    this.#domain = domain
     this.#parent = parent
-    this.#system = system
+    this.#type = type
+    ttl && (this.TTL = ttl)
+  }
+
+  get domain () {
+    return this.#domain
   }
 
   get parent () {
     return this.#parent
   }
 
-  get system () {
-    return this.#system
+  get type () {
+    return this.#type
+  }
+
+  destroy () {
+    console.log('DESTROY', this)
+    // Fire destroy event
   }
 }
