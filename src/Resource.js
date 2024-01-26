@@ -4,42 +4,40 @@ import RightManager from './RightManager.js'
 export default class Resource extends Entity {
   #rights
 
-  constructor (domain, parent, { name, description, rights = [] }) {
-    super ('Resource', domain, parent, { name, description })
+  constructor ({ domain, parent, name, description, rights = [] }) {
+    super ({
+      type: 'Resource',
+      domain,
+      parent,
+      name,
+      description
+    })
+    
+    this.#rights = new RightManager({ domain, parent: this, rights })
+  }
 
-    this.#rights = new RightManager(domain, this)
-
-    for (const right of rights) {
-      this.#rights.add(right)
+  get data () {
+    return {
+      ...super.data,
+      rights: this.rights.data
     }
   }
 
-  get associatedGroups () {
-    return this.domain.findGroups({ resource: this.name })
+  get rights () {
+    return this.#rights.items
   }
 
-  get associatedRoles () {
+  get roles () {
     return this.domain.findRoles({ resource: this.name })
   }
 
-  get associatedUsers () {
+  get users () {
     return this.domain.findUsers({ resource: this.name })
-  }
-
-  get rights () {
-    return this.#rights.toJSON()
   }
 
   addRight = cfg => this.#rights.add(cfg)
   destroy = () => this.domain.removeResource(this.name)
   getRight = name => this.#rights.get(name)
-  hasRight = name => ['*', 'all'].includes(name) ?? this.#rights.has(name)
+  hasRight = name => this.#rights.count > 0 && (['*', 'all'].includes(name) || this.#rights.has(name))
   removeRight = name => this.#rights.remove(name)
-
-  toJSON () {
-    return {
-      ...super.toJSON(),
-      rights: this.rights
-    }
-  }
 }

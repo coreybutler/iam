@@ -1,0 +1,8 @@
+"test:browser": "dev test -rt browser tests/*.js",
+    "test:deno": "dev test -rt deno tests/*.js",
+    "manually": "dev test -rt manual tests/*.js",
+    "build": "dev build",
+    "report:syntax": "dev report syntax --pretty",
+    "report:size": "dev report size ./.dist/**/*.js ./.dist/**/*.js.map",
+    "report:compat": "dev report compatibility ./src/**/*.js",
+    "report:preview": "npm pack --dry-run && echo \"==============================\" && echo \"This report shows what will be published to the module registry. Pay attention to the tarball contents and assure no sensitive files will be published.\""

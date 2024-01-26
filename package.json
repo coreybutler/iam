@@ -11,16 +11,7 @@
   "scripts": {
     "start": "dev workspace",
     "test": "npm run test:node && npm run test:deno && npm run test:browser && npm run report:syntax && npm run report:size",
-    "test:node": "dev test -rt node tests/*.js",
-    "test:node:sanity": "dev test -rt node tests/01-sanity.js",
-    "test:browser": "dev test -rt browser tests/*.js",
-    "test:deno": "dev test -rt deno tests/*.js",
-    "manually": "dev test -rt manual tests/*.js",
-    "build": "dev build",
-    "report:syntax": "dev report syntax --pretty",
-    "report:size": "dev report size ./.dist/**/*.js ./.dist/**/*.js.map",
-    "report:compat": "dev report compatibility ./src/**/*.js",
-    "report:preview": "npm pack --dry-run && echo \"==============================\" && echo \"This report shows what will be published to the module registry. Pay attention to the tarball contents and assure no sensitive files will be published.\""
+    "test:node": "node tests/01-sanity.js | tap-spec"
   },
   "keywords": [
     "iam",
@@ -36,10 +27,13 @@
     "security",
     "identification"
   ],
-  "author": {
+  "contributors": [{
     "name": "Corey Butler",
     "url": "https://github.com/coreybutler"
-  },
+  }, {
+    "name": "Graham Butler",
+    "url": "https://github.com/gbdrummer"
+  }],
   "license": "MIT",
   "type": "module",
   "standard": {
@@ -49,17 +43,9 @@
       "global"
     ]
   },
-  "dev": {
-    "verbose": true,
-    "replace": {
-      "<#REPLACE_VERSION#>": "package.version"
-    },
-    "alias": {
-      "@author.io/iam": "/app/.dist/iam/index.js",
-      "@author.io/iam-debug": "/app/.dist/iam-debug/index.js.map"
-    }
-  },
   "devDependencies": {
-    "@author.io/dev": "^1.1.6"
+    "@author.io/dev": "^1.1.6",
+    "tap-spec": "^5.0.0",
+    "tappedout": "^1.1.8"
   }
 }

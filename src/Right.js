@@ -1,16 +1,16 @@
 import Entity from './Entity.js'
 
 export default class Right extends Entity {
-  constructor (domain, parent, cfg) {
+  constructor (config) {
 
-    if (typeof cfg === 'string') {
-      cfg = {
-        name: cfg,
+    if (typeof config === 'string') {
+      config = {
+        name: config,
         description: ''
       }
     }
 
-    super('Right', domain, parent, cfg)
+    super({ type: 'Right', ...config })
   }
 
   destroy = () => this.domain.removeRight(this.name)

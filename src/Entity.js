@@ -1,13 +1,23 @@
 import Component from './Component.js'
+import { throwError } from './utilities.js'
 
 export default class Entity extends Component {
   #description
   #name
+  #oid
 
-  constructor (type, domain, parent, { name, description = '', ttl = null } = {}) {
-    super(type, domain, parent, ttl)
+  constructor ({ type, domain, parent = null, name, description = '', ttl = null, internalEvents = [] }) {
+    super({ type, domain, parent, ttl, internalEvents })
     this.#description = description
-    this.#name = name ?? this.logError(`"name" property is required.`)
+    this.#name = name ?? throwError(`"name" property is required.`)
+    this.#oid = Symbol(`${domain ? `${domain.name} ` : ''}${type.toUpperCase()} ${name}`)
+  }
+
+  get data () {
+    return {
+      description: this.description,
+      name: this.name
+    }
   }
 
   get description () {
@@ -18,13 +28,17 @@ export default class Entity extends Component {
     return this.#name
   }
 
-  toJSON () {
-    return {
-      description: this.description,
-      // id: this.id,
-      name: this.name
-    }
+  /**
+   * @getter oid
+   * @alias of this.OID
+   */
+  get oid () {
+    return this.#oid
   }
 
-  toString = () => JSON.stringify(this.toJSON())
+  get OID () {
+    return this.#oid
+  }
+
+  toString = () => JSON.stringify(this.data)
 }

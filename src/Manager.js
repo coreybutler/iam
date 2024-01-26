@@ -1,13 +1,17 @@
 import Component from './Component.js'
+import { ACCESS_KEY, throwError } from './utilities.js'
 
 export default class Manager extends Component {
   #ItemConstructor
   #map = new Map
+  #namespace
   #type
 
-  constructor (type, ItemConstructor, domain, parent, items) {
-    super(type, domain, parent)
+  constructor ({ type, namespace, domain, parent = null, ItemConstructor, items }) {
+    super({ type, domain, parent: parent ?? domain })
+    
     this.#ItemConstructor = ItemConstructor
+    this.#namespace = namespace
     this.#map
     this.#type = type
 
@@ -16,14 +20,31 @@ export default class Manager extends Component {
     }  
   }
 
-  add (cfg) {
-    if (this.#map.has(cfg.name)) return this.domain.logError(`${this.#type} Manager already has a ${this.#type} named "${cfg.name}"`)
-    const item = new this.#ItemConstructor(this.domain, this.parent, cfg)
-    return (this.#map.set(item.name, item), item)
+  get count () {
+    return this.#map.size
   }
 
-  create (cfg) {
-    console.log(...arguments);
+  get data () {
+    return [...this.#map.values()].map(item => item.data)
+  }
+
+  get items () {
+    return [...this.#map.values()]
+  }
+
+  add (config) {
+    const item = new this.#ItemConstructor({
+      domain: this.domain,
+      parent: this,
+      ...(typeof config === 'string' ? { name: config } : config)
+    }), { name } = item
+
+    this.#map.has(name)
+      ? throwError(this.domain, `${this.#type} "${name}" already exists`)
+      : this.#map.set(name, item)
+
+    this.parent.emit(ACCESS_KEY, `${this.#namespace}.add`)
+    return item
   }
 
   find (filterFn) {
@@ -36,13 +57,10 @@ export default class Manager extends Component {
   remove (name) {
     const item = this.get(name)
 
-    return item
+    item
       ? this.#map.delete(name)
-      // TODO: Throw here?
-      : this.domain.logError(`Cannot remove ${this.#type} "${name}" from ${this.parent.type} "${this.parent.name}"; "${name}" is not associated with "${this.parent.name}"`)
-  }
+      : throwError(this.domain, `Cannot remove ${this.#type} "${name}" from ${this.parent.type} "${this.parent.name}"; "${name}" is not associated with "${this.parent.name}"`)
 
-  toJSON () {
-    return [...this.#map.values()].map(item => item.toJSON())
+    this.parent.emit(ACCESS_KEY, `${this.#namespace}.remove`)
   }
 }

@@ -1,39 +1,71 @@
 import Entity from './Entity.js'
-import GroupManager from './GroupManager.js'
+import MappingManager from './MappingManager.js'
 import ResourceManager from './ResourceManager.js'
 import RoleManager from './RoleManager.js'
 import UserManager from './UserManager.js'
 
 export default class Domain extends Entity {
+  #mappings
   #resources
   #roles
-  #groups
   #users
 
-  constructor ({ name, description, resources = [], groups = [], roles = [], users = [] }) {
-    super('Domain', null, null, { name, description })
-    this.#resources = new ResourceManager(this, this, resources)
-    this.#roles = new RoleManager(this, this, roles)
-    this.#groups = new GroupManager(this, this, groups)
-    this.#users = new UserManager(this, this, users)
+  constructor ({ name, description, resources = [], roles = [], users = [], mappings = [] }) {
+    super({
+      type: 'Domain',
+      name,
+      description,
+      internalEvents: [
+        'mapping.add', 'mapping.remove',
+        'resource.add', 'resource.remove',
+        'role.add', 'role.remove',
+        'user.add', 'user.remove'
+      ]
+    })
+
+    this.#mappings = new MappingManager({ domain: this, mappings })
+    this.#resources = new ResourceManager({ domain: this, resources })
+    this.#roles = new RoleManager({ domain: this, roles })
+    this.#users = new UserManager({ domain: this, users })
   }
+
+  get data () {
+    return {
+      ...super.data,
+      mappings: this.#mappings.data,
+      resources: this.#resources.data,
+      roles: this.#roles.data,
+      users: this.#users.data
+    }
+  }
+
+  get mappings () {
+    return this.#mappings.items
+  }
+
+  get resources () {
+    return this.#resources.items
+  }
+
+  get roles () {
+    return this.#roles.items
+  }
+
+  get users () {
+    return this.#users.items
+  }
+
+  addMapping = cfg => this.#mappings.add(cfg)
+  findMappings = criteria => this.#mappings.find(criteria)
+  getMapping = name => this.#mappings.get(name)
+  hasMapping = name => this.#mappings.has(name)
+  removeMapping = name => this.#mappings.remove(name)
 
   addResource = cfg => this.#resources.add(cfg)
   getResource = name => this.#resources.get(name)
   findResources = ({ name, id }) => {}
   hasResource = name => this.#resources.has(name)
   removeResource = name => this.#resources.remove(name)
-
-  addGroup = cfg => this.#groups.add(cfg)
-  getGroup = name => this.#groups.get(name)
-  findGroups = ({ name, id }) => {}
-  hasGroup = name => this.#groups.has(name)
-  
-  removeGroup (name, removeMembers = true) {
-    // TODO: Remove members
-
-    this.#groups.remove(name)
-  }
 
   addRole = cfg => this.#roles.add(cfg)
   getRole = name => this.#roles.get(name)
@@ -46,18 +78,6 @@ export default class Domain extends Entity {
   getUser = name => this.#users.get(name)
   hasUser = name => this.#users.has(name)
   removeUser = name => this.#users.remove(name)
-
-  logError = error => console.error(`Domain "${this.name}" error: ${error}`)
-
-  toJSON () {
-    return {
-      ...super.toJSON(),
-      resources: this.#resources.toJSON(),
-      groups: this.#groups.toJSON(),
-      roles: this.#roles.toJSON(),
-      users: this.#users.toJSON()
-    }
-  }
 
   trace () {
     console.log('TODO: Trace lineage of specified elements')
