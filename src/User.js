@@ -1,17 +1,12 @@
-import Profile from './Profile.js'
+import { USER_WEIGHTS } from './Constants.js'
+import Solver from './Solver.js'
 
-export default class User extends Profile {
+export default class User extends Solver {
   constructor (config) {
     super({
       ...config,
       type: 'User',
-
-      weights: {
-        'deny': 5,
-        'allow': 6,
-        'always allow': 10,
-        'always deny': 9
-      }
+      weights: USER_WEIGHTS
     })
   }
 }

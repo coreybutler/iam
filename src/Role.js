@@ -1,18 +1,12 @@
-import Profile from './Profile.js'
+import { ROLE_WEIGHTS } from './Constants.js'
+import Solver from './Solver.js'
 
-export default class Role extends Profile {
+export default class Role extends Solver {
   constructor (config) {
     super({
       type: 'Role',
       ...config,
-      weights: {
-        'allow': 1,
-        'priority allow': 4,
-        'high priority allow': 8,
-        'deny': 2,
-        'priority deny': 3,
-        'high priority deny': 7
-      }
+      weights: ROLE_WEIGHTS
     })
   }
 }

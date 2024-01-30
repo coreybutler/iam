@@ -22,28 +22,34 @@ const domain = new Domain({
   //   },
 
   //   rights: ['view', 'manage']
+  }, {
+    name: 'Other Screen',
+    rights: ['read', 'write']
   }],
 
   roles: [{
     name: 'Admin',
 
     permissions: {
-      'Licensing Screen': ['high priority deny:read', 'write']
+      'Licensing Screen': ['priority allow:read']
     }
   }, {
     name: 'Basic User',
-    roles: ['Admin']
+    roles: ['Admin'],
+
+    permissions: {
+      'Licensing Screen': ['deny:read'],
+      'Other Screen': ['read', 'high priority deny:write']
+    }
+  }, {
+    name: 'Basic User 2',
+    roles: ['Basic User'],
+
+    permissions: {
+      'Licensing Screen': ['deny:read', 'write'],
+      'Other Screen': ['read', 'priority allow:write']
+    }
   }]
-
-  // roles: [{
-  //   name: 'Admin',
-
-  //   permissions: {
-  //     'Licensing Screen': ['priority allow:write', 'read']
-  //   },
-
-  //   roles: []
-  // }],
 
   // users: [{
   //   name: 'Graham',
@@ -57,9 +63,13 @@ const domain = new Domain({
 // printJSON(domain.toString())
 
 // const resource = domain.getResource('Licensing Screen')
-const role = domain.getRole('Admin')
-// console.log(role.permissions);
-console.log(role.hasPermission('Licensing Screen', 'read'))
+const role = domain.getRole('Basic User 2')
+
+console.log(role.getACL('Licensing Screen').allowsAll)
+
+// console.log(role.isAllowed('Licensing Screen', 'read'))
+
+// console.log(role.hasAllPermissions('Licensing Screen'))
 
 // const user = domain.getUser('Graham')
 
