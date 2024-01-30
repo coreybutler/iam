@@ -1,4 +1,4 @@
-import { getTrumpingPermission } from './utilities.js'
+import { getTrumpingPermission, throwError } from './utilities.js'
 
 export default class ACL {
   #permissions
@@ -10,32 +10,32 @@ export default class ACL {
   }
 
   get allowsAll () {
-    return this.#resource.rights.every(({ name }) => {
-      return getTrumpingPermission(...this.#getPermissionsByRight(name))?.allows ?? false
-    }) ?? false  
+    return this.#resource.rights.every(({ name }) => this.#trumpingPermissionAllows(name))
+  }
+
+  get allowsAny () {
+    return this.#resource.rights.some(({ name }) => this.#trumpingPermissionAllows(name))
   }
 
   get permissions () {
-    return this.#permissions.map(permission => permission.toString())
+    return [...new Set([...this.#permissions.map(permission => permission.toString())])]
   }
 
   allows (right) {
-    return getTrumpingPermission(...this.#getPermissionsByRight(right))?.allows ?? false
+    return this.#trumpingPermissionAllows(right)
   }
 
-  allowsAny () {
-
+  allowsEvery (...rights) {
+    return rights.every(right => this.#trumpingPermissionAllows(right))
   }
 
-  allowsEvery () {
-
+  allowsSome (...rights) {
+    return rights.some(right => this.#trumpingPermissionAllows(right))
   }
 
-  allowsSome () {
-
-  }
-
-  #getPermissionsByRight (name) {
-    return this.#permissions.filter(({ right }) => right === name)
+  #trumpingPermissionAllows (name) {
+    return this.#resource.hasRight(name)
+      ? getTrumpingPermission(...this.#permissions.filter(({ right }) => right === name))?.allows ?? false
+      : throwError(this.#resource.domain, `Resource "${this.#resource.name}" does not include Right "${name}"`)
   }
 }

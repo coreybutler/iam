@@ -43,37 +43,37 @@ const domain = new Domain({
     }
   }, {
     name: 'Basic User 2',
-    roles: ['Basic User'],
 
     permissions: {
-      'Licensing Screen': ['deny:read', 'write'],
-      'Other Screen': ['read', 'priority allow:write']
+      'Licensing Screen': ['deny:read', 'deny:write'],
+      'Other Screen': ['priority allow:write']
     }
-  }]
+  }],
 
-  // users: [{
-  //   name: 'Graham',
-  //   // roles: ['Admin'],
-  //   permissions: {
-  //     'Licensing Screen': ['write', 'read']
-  //   }
-  // }]
+  users: [{
+    name: 'Graham',
+    roles: ['Basic User 2'],
+    // permissions: {
+    //   'Licensing Screen': ['write', 'read']
+    // }
+  }]
 })
 
-// printJSON(domain.toString())
+printJSON(domain.toString())
 
 // const resource = domain.getResource('Licensing Screen')
-const role = domain.getRole('Basic User 2')
+// const role = domain.getRole('Basic User 2')
 
-console.log(role.getACL('Licensing Screen').allowsAll)
+// console.log(role.getACL('Licensing Screen').permissions)
+// console.log(role.getACL('Other Screen').allows('write'))
 
 // console.log(role.isAllowed('Licensing Screen', 'read'))
 
 // console.log(role.hasAllPermissions('Licensing Screen'))
 
-// const user = domain.getUser('Graham')
+const user = domain.getUser('Graham')
 
-// console.log(user.hasAllPermissions('Licensing Screen'))
+console.log(user.getACL('Licensing Screen').allowsSome('read'))
 
 // 1. Has access to the resource?
 // 2. Have one specific right on the resource?

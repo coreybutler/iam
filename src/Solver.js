@@ -30,7 +30,7 @@ export default class Solver extends Entity {
     const resources = this.domain.resources
 
     return Object.fromEntries(resources.reduce((result, { name, rights }) => {
-      const permissions = this.getPermissions({ resource: name })
+      const permissions = this.#getPermissions({ resource: name })
 
       permissions.length > 0 && result.push([name, rights.reduce((result, { name }) => {
         const trump = getTrumpingPermission(...permissions.filter(({ right }) => right === name))
@@ -46,49 +46,8 @@ export default class Solver extends Entity {
     return this.#weights
   }
 
-  getPermissions ({ resource, right, asString = false }) {
-    const local = this.#permissions.get(resource),
-          permissions = [
-            ...(right
-              ? (local?.get(right) ?? [])
-              : ([...local?.values() ?? []].flatMap(permissions => [...permissions]) ?? [])
-            ),
-      
-            ...this.#roles.flatMap(role => this.domain.getRole(role)?.getPermissions({ resource, right }) ?? [])
-          ]
-
-    return asString ? permissions.map(permission => permission.toString()) : permissions
-  }
-
   getACL (resource) {
-    // resource = this.domain.getResource(resource) ?? throwError(this.domain, `Resource "${resource}" not found.`)
-
-    return new ACL(this.domain.getResource(resource), this.getPermissions({ resource }))
-
-    // return Object.defineProperties({
-    //   isAllowed: right => getTrumpingPermission(...this.getPermissions({ resource, right }))?.allows ?? false,
-
-    //   isAllowedAny: (...rights) => {
-
-    //   },
-
-    //   isAllowedEvery: (...rights) => {},
-    //   isAllowedSome: (...rights) => {}
-    // }, {
-    //   isAllowedAll: {
-    //     get: () => {
-    //       const permissions = this.getPermissions({ resource })
-
-    //       return this.domain.getResource(resource)?.rights.every(({ name }) => {
-    //         return getTrumpingPermission(...permissions.filter(({ right }) => right === name))?.allows ?? false
-    //       }) ?? false    
-    //     }
-    //   },
-
-    //   permissions: {
-    //     get: () => this.getPermissions({ resource, asString: true })
-    //   }
-    // })
+    return new ACL(this.domain.getResource(resource), this.#getPermissions({ resource }))
   }
 
   setPermission (resource, spec) {
@@ -98,6 +57,20 @@ export default class Solver extends Entity {
     rights.size === 0 && this.#permissions.set(resource, rights)
 
     return this.#setPermission(resource, spec, rights)
+  }
+
+  #getPermissions ({ resource, right, asString = false }) {
+    const local = this.#permissions.get(resource),
+          permissions = [
+            ...(right
+              ? (local?.get(right) ?? [])
+              : ([...local?.values() ?? []].flatMap(permissions => [...permissions]) ?? [])
+            ),
+      
+            ...this.#roles.flatMap(role => this.domain.getRole(role)?.#getPermissions({ resource, right }) ?? [])
+          ]
+
+    return asString ? permissions.map(permission => permission.toString()) : permissions
   }
 
   #setPermission (resource, spec, rights) {
@@ -121,7 +94,7 @@ export default class Solver extends Entity {
   }
 }
 
-// #getPermissions (asText = false) {
+// ##getPermissions (asText = false) {
   //   return Object.fromEntries([...this.#permissions.entries()].map(([resource, rights]) => {
   //     return [resource, [...rights.values()].reduce((result, permissions) => {
   //       asText
@@ -134,7 +107,7 @@ export default class Solver extends Entity {
   // }
 
   // isAllowedAll (resource) {
-  //   const permissions = this.getPermissions(resource)
+  //   const permissions = this.#getPermissions(resource)
 
   //   return this.domain.getResource(resource)?.rights.every(({ name }) => {
   //     return getTrumpingPermission(...permissions.filter(({ right }) => right === name))?.allows ?? false
@@ -142,5 +115,5 @@ export default class Solver extends Entity {
   // }
 
   // isAllowed (resource, right) {
-  //   return getTrumpingPermission(...this.getPermissions(...arguments))?.allows ?? false
+  //   return getTrumpingPermission(...this.#getPermissions(...arguments))?.allows ?? false
   // }
