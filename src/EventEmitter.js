@@ -1,4 +1,5 @@
-import { ACCESS_KEY, throwError } from './utilities.js'
+import { ACCESS_KEY } from './Constants.js'
+import { throwError } from './utilities.js'
 
 export default class EventEmitter {
   #internalEvents
@@ -23,11 +24,9 @@ export default class EventEmitter {
       evt = args.shift()
     }
 
-    if (this.#internalEvents.has(evt) && !hasAccess) {
-      throwError(this.domain, `${this.type} "${this.name}": "${evt}" event is reserved for internal use.`)
-    }
-
-    return await Promise.all((this.#listeners.get(evt) ?? []).map(handler => handler(...args)))
+    return this.#internalEvents.has(evt) && !hasAccess
+      ? throwError(this.domain, `${this.type} "${this.name}": "${evt}" event is reserved for internal use.`)
+      : await Promise.all([...(this.#listeners.get(evt) ?? [])].map(handler => handler(...args)))
   }
 
   on (evt, handler) {

@@ -4,9 +4,13 @@ export default class ACL {
   #permissions
   #resource
 
-  constructor (resource, permissions) {
-    this.#permissions = permissions
-    this.#resource = resource
+  constructor (solver, resource) {
+    this.#permissions = solver.getPermissions(resource)
+    this.#resource = solver.domain.getResource(resource)
+
+    solver.on('permission.set', () => {
+      this.#permissions = solver.getPermissions(resource)
+    })
   }
 
   get allowsAll () {
@@ -25,7 +29,7 @@ export default class ACL {
     return this.#trumpingPermissionAllows(right)
   }
 
-  allowsEvery (...rights) {
+  allowsEach (...rights) {
     return rights.every(right => this.#trumpingPermissionAllows(right))
   }
 

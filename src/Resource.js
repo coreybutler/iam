@@ -12,7 +12,7 @@ export default class Resource extends Entity {
       name,
       description
     })
-    
+
     this.#rights = new RightManager({ domain, parent: this, rights })
   }
 
@@ -39,5 +39,6 @@ export default class Resource extends Entity {
   destroy = () => this.domain.removeResource(this.name)
   getRight = name => this.#rights.get(name)
   hasRight = name => this.#rights.count > 0 && (['*', 'all'].includes(name) || this.#rights.has(name))
+  hasRights = (...rights) => rights.every(right => this.hasRight(right))
   removeRight = name => this.#rights.remove(name)
 }

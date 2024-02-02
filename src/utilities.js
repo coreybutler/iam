@@ -1,7 +1,5 @@
 import { inspect } from 'util'
 
-export const ACCESS_KEY = Symbol()
-
 export function getTrumpingPermission (...permissions) {
   return permissions.reduce((trump, permission) => {
     return trump 
@@ -20,6 +18,14 @@ export function printJSON (json, pretty = true) {
   console.log(inspect(pretty ? JSON.parse(json, null, 2) : json, { depth: null }))
 }
 
-export function throwError (domain, error) {
-  throw new Error(`${domain ? `"${domain.name}" Domain: ` : ''}${error}`)
+export function throwError (domain, message) {
+  throw new Error(getMessage(...arguments))
+}
+
+export function warn (domain, message) {
+  console.warn(`\nWARNING: ${getMessage(...arguments)}`)
+}
+
+function getMessage (domain, message) {
+  return `${domain ? `"${domain.name}" Domain: ` : ''}${message}`
 }

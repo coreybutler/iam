@@ -4,10 +4,9 @@ import { list, throwError } from './utilities.js'
 export default class Permission extends Component {
   #resource
   #right
-  #target
   #type
 
-  constructor ({ domain, parent, target, resource, spec }) {
+  constructor ({ domain, parent, resource, spec }) {
     super({ type: 'Permission', domain, parent })
 
     const [type, right] = (spec.includes(':') ? spec : `allow:${spec}`).split(':').map(chunk => {
@@ -16,12 +15,11 @@ export default class Permission extends Component {
     })
 
     if (!parent.weights.hasOwnProperty(type)) {
-      return throwError(domain, `"${resource}" Resource: "${target.name}" ${target.type}: Invalid permission "${spec}". Options include ${list(...Object.keys(parent.weights))}.`)
+      return throwError(domain, `"${resource}" Resource: "${parent.name}" ${parent.type}: Invalid permission "${spec}". Options include ${list(...Object.keys(parent.weights))}.`)
     }
 
     this.#resource = resource
     this.#right = right
-    this.#target = target
     this.#type = type
   }
 
@@ -35,10 +33,6 @@ export default class Permission extends Component {
 
   get right () {
     return this.#right
-  }
-
-  get target () {
-    return this.#target
   }
 
   get type () {

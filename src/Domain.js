@@ -1,6 +1,8 @@
 import Entity from './Entity.js'
+import Manager from './Manager.js'
 import MappingManager from './MappingManager.js'
 import ResourceManager from './ResourceManager.js'
+import Role from './Role.js'
 import RoleManager from './RoleManager.js'
 import UserManager from './UserManager.js'
 
@@ -8,13 +10,15 @@ export default class Domain extends Entity {
   #mappings
   #resources
   #roles
+  #universalRole
   #users
 
-  constructor ({ name, description, resources = [], roles = [], users = [], mappings = [] }) {
+  constructor ({ name, description, resources = [], roles = [], users = [], mappings = [], universalRole = {} }) {
     super({
       type: 'Domain',
       name,
       description,
+
       internalEvents: [
         'mapping.add', 'mapping.remove',
         'resource.add', 'resource.remove',
@@ -25,6 +29,14 @@ export default class Domain extends Entity {
 
     this.#mappings = new MappingManager({ domain: this, mappings })
     this.#resources = new ResourceManager({ domain: this, resources })
+    
+    universalRole.name = universalRole.name ?? 'Universal'
+
+    this.#universalRole = new Role({
+      domain: this,
+      ...universalRole
+    }, true)
+
     this.#roles = new RoleManager({ domain: this, roles })
     this.#users = new UserManager({ domain: this, users })
   }
@@ -49,6 +61,10 @@ export default class Domain extends Entity {
 
   get roles () {
     return this.#roles.items
+  }
+
+  get universalRole () {
+    return this.#universalRole
   }
 
   get users () {
@@ -78,8 +94,4 @@ export default class Domain extends Entity {
   getUser = name => this.#users.get(name)
   hasUser = name => this.#users.has(name)
   removeUser = name => this.#users.remove(name)
-
-  trace () {
-    console.log('TODO: Trace lineage of specified elements')
-  }
 }

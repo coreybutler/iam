@@ -1,3 +1,5 @@
+export const ACCESS_KEY = Symbol()
+
 export const ROLE_WEIGHTS = Object.freeze({
   'allow': 1,
   'priority allow': 4,

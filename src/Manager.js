@@ -1,5 +1,6 @@
+import { ACCESS_KEY } from './Constants.js'
 import Component from './Component.js'
-import { ACCESS_KEY, throwError } from './utilities.js'
+import { throwError } from './utilities.js'
 
 export default class Manager extends Component {
   #ItemConstructor
@@ -32,8 +33,8 @@ export default class Manager extends Component {
     return [...this.#map.values()]
   }
 
-  add (config) {
-    const item = new this.#ItemConstructor({
+  add (config, prepend = false) {
+    const item = config instanceof this.#ItemConstructor ? config : new this.#ItemConstructor({
       domain: this.domain,
       parent: this,
       ...(typeof config === 'string' ? { name: config } : config)
@@ -41,7 +42,7 @@ export default class Manager extends Component {
 
     this.#map.has(name)
       ? throwError(this.domain, `${this.#type} "${name}" already exists`)
-      : this.#map.set(name, item)
+      : prepend ? this.#map = new Map([[name, item], ...this.#map]) : this.#map.set(name, item)
 
     this.parent.emit(ACCESS_KEY, `${this.#namespace}.add`)
     return item
