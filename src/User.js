@@ -15,7 +15,7 @@ export default class User extends Solver {
 
   unassignRole (name) {
     name === this.domain.universalRole.name
-      ? throwError(this.domain, `Cannot unassign "${name}" role from user "${this.name}". This is a special role assigned to all users automatically.`)
+      ? throwError(this.domain, `Cannot unassign "${name}" role from user "${this.name}". This is a reserved role assigned to all users automatically.`)
       : super.unassignRole(name)
   }
 }

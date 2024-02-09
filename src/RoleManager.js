@@ -24,7 +24,7 @@ export default class RoleManager extends Manager {
 
   remove (name) {
     return name === this.domain.universalRole.name
-      ? throwError(this.domain, `Cannot remove "${name}" role. This is a special role which is automatically applied to all users. Instead of removing it, you can remove its assigned roles and permissions. NOTE: This will affect all users!`)
+      ? throwError(this.domain, `Cannot remove "${name}" role. This is a reserved role which is automatically applied to all users. Instead of removing it, you can remove its assigned roles and permissions. NOTE: This will affect all users!`)
       : super.remove(name)
   }
 }

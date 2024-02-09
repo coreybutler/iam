@@ -2,9 +2,11 @@ import Entity from './Entity.js'
 import { getTrumpingPermission, throwError } from './utilities.js'
 import Permission from './Permission.js'
 import ACL from './ACL.js'
+import Lineage from './Lineage.js'
 
 export default class Solver extends Entity {
   #acls = new Map
+  #lineage = new Map
   #permissions = new Map
   #roles = []
   #weights
@@ -24,7 +26,11 @@ export default class Solver extends Entity {
     return {
       ...super.data,
       roles: [...this.#roles],
-      permissions: this.permissions
+      permissions: Object.fromEntries([...this.#permissions].map(([resource, permissions]) => {
+        return [resource, [...permissions.values()].flatMap(permissions => {
+          return [...permissions].map(p => p.toString())
+        })]
+      }))
     }
   }
 
@@ -62,49 +68,60 @@ export default class Solver extends Entity {
       : throwError(this.domain, `Cannot unnasign Role "${name}" from ${this.type} "${this.name}". This Role is not assigned to this ${this.type}.`)
   }
 
-  getACL (resource, refresh = false) {
-    let acl = this.#acls.get(resource)
-
-    if (!acl || refresh) {
-      acl = new ACL(this, resource)
-      this.#acls.set(resource, acl)
-    }
-
-    return acl
+  getACL (resource) {
+    return this.#getCacheable(this.#acls, resource, () => new ACL(this, resource))
   }
 
   getLineage (resource, right) {
-    const entity = `${this.type} "${this.name}"`,
-          permission = getTrumpingPermission(...this.getPermissions(...arguments)),
-          { parent } = permission,
-          action = `${permission.allows ? 'granted' : 'denied'} the "${right}" Right on the "${resource}" Resource`,
-          application = `the Permission "${permission.toString()}"`
+    let path = [],
+        permission = getTrumpingPermission(...this.#getDirectPermissions({ resource, right }))
+        
+    if (!permission) {
+      permission = getTrumpingPermission(...this.#getInheritedPermissions({ resource, right }))
+      
+      if (permission) {
+        const { parent } = permission
 
-    if (!permission) return `${entity} does not have "${right}" permission on the "${resource}" Resource.`
-    if (parent === this) return `${entity} is directly ${action} via ${application}`
+        path.push(parent.toString())
 
-    return `${entity} is ${action} via the Role "${parent.name}" which applies ${application}`
+        if (!this.#roles.has(parent.name)) {
+          const { name } = parent
+
+          for (let role of [...this.#roles]) {
+            role = this.domain.getRole(role)
+
+            if (role.hasDirectRole(name)) {
+              path.push(role.toString())
+              break
+            } else if (role.hasInheritedRole(name)) {
+              console.log('DO RECURSION')
+            }
+          }
+        }
+      }
+    }
+
+    return permission ? Object.freeze(new Lineage(this, permission, path)) : null
+  }
+
+  getPermission (resource, right) {
+    return getTrumpingPermission(...this.getPermissions(...arguments))
   }
 
   getPermissions (resource, right) {
     return this.#getPermissions({ resource, right })
   }
 
-  #getPermissions ({ resource, right, asString = false }) {
-    const permissions = [
-      ...this.#getLocalPermissions({ resource, right }),
-      ...[...this.#roles].flatMap(role => this.domain.getRole(role)?.getPermissions(resource, right) ?? [])
-    ]
-
-    return asString ? permissions.map(permission => permission.toString()) : permissions
+  hasDirectRole (role) {
+    return this.#roles.has(role)
   }
 
-  #getLocalPermissions ({ resource, right }) {
-    const permissions = this.#permissions.get(resource)
+  hasInheritedRole (role) {
+    return [...this.#roles].some(name => this.domain.getRole(name).hasRole(role))
+  }
 
-    return right
-      ? (permissions?.get(right) ?? [])
-      : ([...permissions?.values() ?? []].flatMap(permissions => [...permissions]) ?? [])
+  hasRole (role) {
+    return this.hasDirectRole(role) || this.hasInheritedRole(role)
   }
 
   isAuthorized (resource, right) {
@@ -113,6 +130,39 @@ export default class Solver extends Entity {
 
   setPermission (resource, permission) {
     return this.#setPermission({ resource, permission })
+  }
+
+  #getCacheable (collection, key, instantiate) {
+    let cacheable = collection.get(key)
+
+    if (!cacheable) {
+      cacheable = instantiate()
+      collection.set(key, cacheable)
+    }
+
+    return cacheable
+  }
+
+  #getPermissions ({ resource, right, asString = false }) {
+    const args = { resource, right },
+          permissions = [
+            ...this.#getDirectPermissions(args),
+            ...this.#getInheritedPermissions(args)
+          ]
+
+    return asString ? permissions.map(permission => permission.toString()) : permissions
+  }
+
+  #getDirectPermissions ({ resource, right }) {
+    const permissions = this.#permissions.get(resource)
+
+    return right
+      ? (permissions?.get(right) ?? [])
+      : ([...permissions?.values() ?? []].flatMap(permissions => [...permissions]) ?? [])
+  }
+
+  #getInheritedPermissions ({ resource, right }) {
+    return [...this.#roles].flatMap(role => this.domain.getRole(role)?.getPermissions(resource, right) ?? [])
   }
 
   #setPermission ({ resource, permission: spec }, silenceEvents = false) {

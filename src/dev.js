@@ -53,10 +53,10 @@ const domain = new Domain({
   }],
 
   universalRole: {
-    name: 'All Users',
+    // name: 'Universal',
     // roles: [],
     // permissions: {
-    //   'Licensing Screen': ['read']
+    //   'Licensing Screen': ['deny:read']
     // }
   },
 
@@ -68,24 +68,25 @@ const domain = new Domain({
     }
   }, {
     name: 'Basic User',
-    roles: ['Admin'],
-
-    // permissions: {
-    //   'Licensing Screen': ['read'],
-    //   'Other Screen': ['read', 'high priority deny:write']
-    // }
-  }, {
-    name: 'Basic User 2',
+    // roles: ['Admin'],
 
     permissions: {
-      'Licensing Screen': ['read', 'write'],
-      'Other Screen': ['priority allow:write']
+      'Licensing Screen': ['read'],
+      // 'Other Screen': ['read', 'high priority deny:write']
     }
+  }, {
+    name: 'Basic User 2',
+    roles: ['Basic User'],
+
+    // permissions: {
+    //   // 'Licensing Screen': ['read', 'write'],
+    //   'Other Screen': ['priority allow:write']
+    // }
   }],
 
   users: [{
     name: 'Graham',
-    roles: ['Basic User'],
+    roles: ['Basic User 2'],
     
     // permissions: {
     //   'Licensing Screen': ['read']
@@ -95,10 +96,17 @@ const domain = new Domain({
 
 // printJSON(domain.toString())
 
-// const role = domain.getRole('Admin')
-const user = domain.getUser('Graham')
+// const role = domain.getRole('Universal')
+// const user = domain.getUser('Graham'),
+const user = domain.getUser('Graham'),
+      lineage = user.getLineage('Licensing Screen', 'read')
 
-console.log(user.getLineage('Licensing Screen', 'read'));
+// lineage.reverse()
+console.log(lineage.description);
+printJSON(JSON.stringify(lineage))
+// console.log(user.getPermission('Licensing Screen', 'read'))
+
+// console.log(user.getLineage('Licensing Screen', 'read'))
 
 // role.unassignRole('All Users')
 // user.unassignRole('Basic User')

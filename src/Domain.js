@@ -1,5 +1,4 @@
 import Entity from './Entity.js'
-import Manager from './Manager.js'
 import MappingManager from './MappingManager.js'
 import ResourceManager from './ResourceManager.js'
 import Role from './Role.js'

@@ -16,7 +16,8 @@ export default class Entity extends Component {
   get data () {
     return {
       description: this.description,
-      name: this.name
+      name: this.name,
+      type: this.type
     }
   }
 
