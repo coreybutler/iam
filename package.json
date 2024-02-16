@@ -10,8 +10,7 @@
   },
   "scripts": {
     "start": "dev workspace",
-    "test": "npm run test:node && npm run test:deno && npm run test:browser && npm run report:syntax && npm run report:size",
-    "test:node": "node tests/01-sanity.js | tap-spec"
+    "test": "node tests/index.js | tap-spec"
   },
   "keywords": [
     "iam",

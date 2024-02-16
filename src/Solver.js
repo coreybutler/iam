@@ -1,53 +1,41 @@
 import Entity from './Entity.js'
-import { getTrumpingPermission, throwError } from './utilities.js'
+import { getTrumpingPermission, throwError, warn } from './utilities.js'
 import Permission from './Permission.js'
 import ACL from './ACL.js'
-import Lineage from './Lineage.js'
 
 export default class Solver extends Entity {
   #acls = new Map
-  #lineage = new Map
   #permissions = new Map
-  #roles = []
+  #roles = new Set
+  #suppressEvents = true
   #weights
 
   constructor ({ type, domain, parent, name, description, permissions = {}, roles = [], ttl, weights, internalEvents = [] }) {
     super({ type, domain, parent, name, description, ttl, internalEvents })
 
-    this.#roles = new Set(roles)
     this.#weights = weights
-    
-    for (const [resource, permission] of Object.entries(permissions)) {
-      [...(Array.isArray(permission) ? permission : [permission])].forEach(permission => this.#setPermission({ resource, permission }, true))
+
+    for (const role of roles) {
+      this.addRole(role)
     }
+
+    for (const [resource, permission] of Object.entries(permissions)) {
+      [...(Array.isArray(permission) ? permission : [permission])].forEach(permission => this.#addPermission({ resource, permission }))
+    }
+
+    this.#suppressEvents = false
   }
 
   get data () {
     return {
       ...super.data,
-      roles: [...this.#roles],
-      permissions: Object.fromEntries([...this.#permissions].map(([resource, permissions]) => {
-        return [resource, [...permissions.values()].flatMap(permissions => {
-          return [...permissions].map(p => p.toString())
-        })]
-      }))
+      roles: this.roles,
+      permissions: this.permissions
     }
   }
 
   get permissions () {
-    const resources = this.domain.resources
-
-    return Object.fromEntries(resources.reduce((result, { name, rights }) => {
-      const permissions = this.#getPermissions({ resource: name })
-
-      permissions.length > 0 && result.push([name, rights.reduce((result, { name }) => {
-        const trump = getTrumpingPermission(...permissions.filter(({ right }) => right === name))
-        trump && result.push(trump.toString())
-        return result
-      }, [])])
-
-      return result
-    }, []))
+    return this.#getTrumpingDirectPermissions(true)
   }
 
   get roles () {
@@ -55,118 +43,126 @@ export default class Solver extends Entity {
   }
 
   get weights () {
-    return this.#weights
+    return { ...this.#weights }
   }
 
-  assignRole (name, prepend = false) {
+  addPermission (resource, permission) {
+    return this.#addPermission({ resource, permission })
+  }
+
+  addRole (name, prepend = false) {
+    // const role = this.domain.getRole(name)
+    
+    // if (!role) return throwError(this.domain, `Cannot add non-existent Role "${name}" to ${this.type} "${this.name}"`)
+
     prepend ? this.#roles = new Set([name, ...this.#roles]) : this.#roles.add(name)
+    !this.#suppressEvents && this.emit('role.add', name)
   }
-
-  unassignRole (name) {
-    this.#roles.has(name)
-      ? this.#roles.delete(name) && this.emit('role.unassign', name)
-      : throwError(this.domain, `Cannot unnasign Role "${name}" from ${this.type} "${this.name}". This Role is not assigned to this ${this.type}.`)
-  }
-
+ 
   getACL (resource) {
-    return this.#getCacheable(this.#acls, resource, () => new ACL(this, resource))
-  }
+    let acl = this.#acls.get(resource)
 
-  getLineage (resource, right) {
-    let path = [],
-        permission = getTrumpingPermission(...this.#getDirectPermissions({ resource, right }))
-        
-    if (!permission) {
-      permission = getTrumpingPermission(...this.#getInheritedPermissions({ resource, right }))
-      
-      if (permission) {
-        const { parent } = permission
-
-        path.push(parent.toString())
-
-        if (!this.#roles.has(parent.name)) {
-          const { name } = parent
-
-          for (let role of [...this.#roles]) {
-            role = this.domain.getRole(role)
-
-            if (role.hasDirectRole(name)) {
-              path.push(role.toString())
-              break
-            } else if (role.hasInheritedRole(name)) {
-              console.log('DO RECURSION')
-            }
-          }
-        }
-      }
+    if (!acl) {
+      acl = new ACL(this, resource)
+      this.#acls.set(resource, acl)
     }
 
-    return permission ? Object.freeze(new Lineage(this, permission, path)) : null
+    return acl
+  }
+
+  getDirectPermission (resource, right) {
+    return this.#get(...arguments, this.#getTrumpingDirectPermission, this.#getTrumpingDirectPermissionByRight)
+  }
+
+  getDirectPermissions (resource, right = null) {
+    return this.#get(resource, right, this.#getDirectPermissions, this.#getDirectPermissionsByRight)
+  }
+
+  getIndirectPermission (resource, right) {
+    return this.#get(...arguments, this.#getTrumpingIndirectPermission, this.#getTrumpingIndirectPermissionByRight)
+  }
+
+  getIndirectPermissions (resource, right = null) {
+    return this.#get(resource, right, this.#getIndirectPermissions, this.#getIndirectPermissionsByRight)
   }
 
   getPermission (resource, right) {
-    return getTrumpingPermission(...this.getPermissions(...arguments))
+    return this.#get(...arguments, this.#getTrumpingPermission, this.#getTrumpingPermissionByRight)
   }
 
-  getPermissions (resource, right) {
-    return this.#getPermissions({ resource, right })
+  getPermissions (resource, right = null) {
+    return resource
+      ? this.#get(resource, right, this.#getPermissions, this.#getPermissionsByRight)
+      : this.#getTrumpingPermissions()
+  }
+
+  hasDirectPermission (resource, spec) {
+    return this.#hasPermission(...arguments, this.#getDirectPermissions)
+  }
+
+  hasIndirectPermission (resource, spec) {
+    return this.#hasPermission(...arguments, this.#getIndirectPermissions)
+  }
+
+  hasPermission (resource, spec) {
+    return this.hasDirectPermission(...arguments) || this.hasIndirectPermission(...arguments)
   }
 
   hasDirectRole (role) {
     return this.#roles.has(role)
   }
 
-  hasInheritedRole (role) {
+  hasIndirectRole (role) {
     return [...this.#roles].some(name => this.domain.getRole(name).hasRole(role))
   }
 
   hasRole (role) {
-    return this.hasDirectRole(role) || this.hasInheritedRole(role)
+    return this.hasDirectRole(role) || this.hasIndirectRole(role)
   }
 
   isAuthorized (resource, right) {
     return this.getACL(resource).allows(right)
   }
 
-  setPermission (resource, permission) {
-    return this.#setPermission({ resource, permission })
+  removePermission (resource, permission) {
+    if (!this.domain.hasResource(resource)) return this.#throwMissingResourceError('remove', spec, resource)
+
+    const rights = this.#permissions.get(resource)
+
+    if (!rights) return
+
+    const [type, right] = permission.includes(':') ? permission.split(':') : ['allow', permission],
+          permissions = rights.get(right),
+          spec = `${type}:${right}`
+    
+    let removed = []
+
+    permissions.forEach(permission => {
+      if (permission.matches(spec)) {
+        permissions.delete(permission)
+        removed.push(permission.toString())
+      }
+    })
+
+    removed.length > 0 && this.emit('permissions.remove', removed)
   }
 
-  #getCacheable (collection, key, instantiate) {
-    let cacheable = collection.get(key)
-
-    if (!cacheable) {
-      cacheable = instantiate()
-      collection.set(key, cacheable)
-    }
-
-    return cacheable
+  removeRole (name) {
+    this.#roles.has(name)
+      ? this.#roles.delete(name) && this.emit('role.remove', name)
+      : throwError(this.domain, `Cannot unnasign Role "${name}" from ${this.type} "${this.name}". This Role is not assigned to this ${this.type}.`)
   }
 
-  #getPermissions ({ resource, right, asString = false }) {
-    const args = { resource, right },
-          permissions = [
-            ...this.#getDirectPermissions(args),
-            ...this.#getInheritedPermissions(args)
-          ]
+  replacePermission (resource, permission, spec) {
+    if (!this.domain.hasResource(resource)) return this.#throwMissingResourceError('remove', spec, resource)
 
-    return asString ? permissions.map(permission => permission.toString()) : permissions
+    this.removePermission(resource, permission)
+    this.addPermission(resource, spec)
   }
 
-  #getDirectPermissions ({ resource, right }) {
-    const permissions = this.#permissions.get(resource)
-
-    return right
-      ? (permissions?.get(right) ?? [])
-      : ([...permissions?.values() ?? []].flatMap(permissions => [...permissions]) ?? [])
-  }
-
-  #getInheritedPermissions ({ resource, right }) {
-    return [...this.#roles].flatMap(role => this.domain.getRole(role)?.getPermissions(resource, right) ?? [])
-  }
-
-  #setPermission ({ resource, permission: spec }, silenceEvents = false) {
-    if (!this.domain.hasResource(resource)) return this.#throwMissingResourceError('set', spec, resource)
+  #addPermission ({ resource, permission: spec }) {
+    if (!this.domain.hasResource(resource)) return this.#throwMissingResourceError('add', spec, resource)
+    if (this.hasDirectPermission(resource, spec)) return warn(`${this.type} "${this.name}" already has permission "${spec}"`)
 
     const rights = this.#permissions.get(resource) ?? new Map
     rights.size === 0 && this.#permissions.set(resource, rights)
@@ -179,16 +175,175 @@ export default class Solver extends Entity {
     }), { right } = permission
 
     rights.set(right, (rights.get(right) ?? new Set()).add(permission))
-    !silenceEvents && this.emit('permission.set', ...arguments)
+    !this.#suppressEvents && this.emit('permission.add', ...arguments)
 
     return permission
+  }
+
+  #get (resource, right, permissionCallback, rightCallback) {
+    return !right || right.includes(':')
+      ? permissionCallback.call(this, { resource, spec: right })
+      : rightCallback.call(this, { resource, right })
+  }
+
+  #getDirectPermissions ({ resource, spec }) {
+    return spec
+      ? this.#getMatchingPermissions(this.#getDirectPermissionsByResource(resource), spec)
+      : this.#getDirectPermissionsByResource(resource)
+  }
+
+  #getDirectPermissionsByResource (resource) {
+    return [...(this.#permissions.get(resource)?.values() ?? [])].flatMap(set => [...set]) ?? []
+  }
+
+  #getDirectPermissionsByRight ({ resource, right }) {
+    return this.#permissions.get(resource)?.get(right) ?? []
+  }
+
+  #getIndirectPermissions ({ resource, spec }) {
+    return spec ? this.#getMatchingPermissions(
+      this.#getIndirectPermissionsByRight({ resource, right: spec.split(':')[1].trim() }),
+      spec
+    ) : this.#getIndirectPermissionsByResource(resource)
+  }
+
+  #getIndirectPermissionsByResource (resource) {
+    return this.#getRolePermissions(resource)
+  }
+
+  #getIndirectPermissionsByRight ({ resource, right }) {
+    return this.#getRolePermissions(resource, right)
+  }
+
+  #getMatchingPermissions (permissions, spec) {
+    return permissions.filter(permission => permission.matches(spec))
+  }
+
+  #getPermissions ({ resource, spec }) {
+    return spec ? [
+      ...this.#getDirectPermissions(...arguments),
+      ...this.#getIndirectPermissions(...arguments)
+    ] : this.#getPermissionsByResource(resource)
+  }
+
+  #getPermissionsByResource (resource) {
+    return [
+      ...this.#getDirectPermissionsByResource(resource),
+      ...this.#getIndirectPermissionsByResource(resource)
+    ]
+  }
+
+  #getPermissionsByRight ({ resource, right }) {
+    return right ? [
+      ...this.#getDirectPermissionsByRight(...arguments),
+      ...this.#getIndirectPermissionsByRight(...arguments)
+    ] : this.#getPermissionsByResource(resource)
+  }
+
+  #getRolePermissions (resource, right) {
+    return [...this.#roles].flatMap(role => this.domain.getRole(role)?.getPermissions(...arguments) ?? [])
+  }
+
+  #getTrumpingPermission ({ resource, spec }) {
+    return getTrumpingPermission(
+      ...this.#getTrumpingDirectPermission(...arguments),
+      ...this.#getTrumpingIndirectPermission(...arguments)
+    )
+  }
+
+  #getTrumpingPermissionByRight ({ resource, right }) {
+    return getTrumpingPermission(
+      this.#getTrumpingDirectPermissionByRight(...arguments),
+      this.#getTrumpingIndirectPermissionByRight(...arguments)
+    )
+  }
+
+  #getTrumpingDirectPermission ({ resource, spec }) {
+    return getTrumpingPermission(...this.#getDirectPermissions(...arguments))
+  }
+
+  #getTrumpingDirectPermissionByRight ({ resource, right }) {
+    return getTrumpingPermission(...this.#getDirectPermissionsByRight(...arguments))
+  }
+
+  #getTrumpingIndirectPermission ({ resource, spec }) {
+    return getTrumpingPermission(...this.#getIndirectPermissions(...arguments))
+  }
+
+  #getTrumpingIndirectPermissionByRight ({ resource, right }) {
+    return getTrumpingPermission(...this.#getIndirectPermissionsByRight(...arguments))
+  }
+
+  #getTrumpingDirectPermissions (asString = false) {
+    return Object.fromEntries(this.domain.resources.reduce((result, { name: resource, rights }) => {
+      const permissions = this.#getDirectPermissionsByResource(resource)
+
+      permissions.length > 0 && result.push([resource, rights.reduce((result, { name }) => {
+        const trump = getTrumpingPermission(...permissions.filter(({ right }) => right === name))
+        trump && result.push(asString ? trump.toString() : trump)
+        return result
+      }, [])])
+
+      return result
+    }, []))
+  }
+
+  #getTrumpingPermissions (asString = false) {
+    return Object.fromEntries(this.domain.resources.reduce((result, { name: resource, rights }) => {
+      const permissions = this.#getPermissionsByResource(resource)
+
+      permissions.length > 0 && result.push([resource, rights.reduce((result, { name }) => {
+        const trump = getTrumpingPermission(...permissions.filter(({ right }) => right === name))
+        trump && result.push(asString ? trump.toString() : trump)
+        return result
+      }, [])])
+
+      return result
+    }, []))
+  }
+
+  #hasPermission (resource, spec, method) {
+    if (!spec.includes(':')) spec = `allow:${spec}`
+    return this.#getMatchingPermissions(method.call(this, { resource, spec }), spec).length > 0
   }
 
   #throwMissingResourceError (action, permission, resource) {
     return throwError(this.domain, `Cannot ${action} Right "${permission}" on unknown Resource "${resource}".`)
   }
-
-  #throwUnsetRightError (right, resource, message) {
-    return throwError(this.domain, `Cannot unset Right "${right}" from ${this.parent.type} "${this.parent.name}" on Resource "${resource}"; ${message}`)
-  }
 }
+
+// getLineage (resource, right) {
+  //   let path = [],
+  //       permission = getTrumpingPermission(...this.#getDirectPermissions({ resource, right }))
+        
+  //   if (!permission) {
+  //     permission = getTrumpingPermission(...this.#getInheritedPermissions({ resource, right }))
+      
+  //     if (permission) {
+  //       const { parent } = permission
+
+  //       path.push(parent.toString())
+
+  //       if (!this.#roles.has(parent.name)) {
+  //         const { name } = parent
+
+  //         for (let role of [...this.#roles]) {
+  //           role = this.domain.getRole(role)
+
+  //           if (role.hasDirectRole(name)) {
+  //             path.push(role.toString())
+  //             break
+  //           } else if (role.hasInheritedRole(name)) {
+  //             console.log('DO RECURSION')
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   return permission ? Object.freeze(new Lineage(this, permission, path)) : null
+  // }
+
+  // #throwUnsetRightError (right, resource, message) {
+  //   return throwError(this.domain, `Cannot unset Right "${right}" from ${this.parent.type} "${this.parent.name}" on Resource "${resource}"; ${message}`)
+  // }

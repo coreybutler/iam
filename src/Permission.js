@@ -43,6 +43,10 @@ export default class Permission extends Component {
     return this.parent.weights[this.#type] ?? 0
   }
 
+  matches (spec) {
+    return this.toString() === spec.trim()
+  }
+
   toString () {
     return `${this.#type}:${this.#right}`
   }

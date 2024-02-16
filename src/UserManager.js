@@ -5,6 +5,7 @@ export default class UserManager extends Manager {
   constructor ({ domain, parent = null, users }) {
     super({
       type: 'User',
+      namespace: 'user',
       domain,
       items: users,
       ItemConstructor: User

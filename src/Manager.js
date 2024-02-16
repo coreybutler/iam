@@ -59,7 +59,7 @@ export default class Manager extends Component {
     const item = this.get(name)
 
     item
-      ? this.#map.delete(name)
+      ? this.#map.delete(name) && item.destroy()
       : throwError(this.domain, `Cannot remove ${this.#type} "${name}" from ${this.parent.type} "${this.parent.name}"; "${name}" is not associated with "${this.parent.name}"`)
 
     this.parent.emit(ACCESS_KEY, `${this.#namespace}.remove`)

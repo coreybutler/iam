@@ -10,12 +10,12 @@ export default class User extends Solver {
       weights: USER_WEIGHTS
     })
 
-    this.assignRole(this.domain.universalRole.name, true)
+    this.addRole(this.domain.universalRole.name, true)
   }
 
-  unassignRole (name) {
+  removeRole (name) {
     name === this.domain.universalRole.name
       ? throwError(this.domain, `Cannot unassign "${name}" role from user "${this.name}". This is a reserved role assigned to all users automatically.`)
-      : super.unassignRole(name)
+      : super.removeRole(name)
   }
 }

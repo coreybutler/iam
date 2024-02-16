@@ -6,6 +6,7 @@ export default class RoleManager extends Manager {
   constructor ({ domain, roles }) {
     super({
       type: 'Role',
+      namespace: 'role',
       domain,
       items: roles,
       ItemConstructor: Role

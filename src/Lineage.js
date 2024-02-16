@@ -1,25 +1,131 @@
-export default class Lineage extends Array {
-  #permission
-  #solver
-  
-  constructor (solver, permission, path = []) {
-    super(...path)
-    this.#permission = permission
-    this.#solver = solver
+export default class Lineage {
+  #path
+
+  constructor (solver, permission) {
+    const { parent } = permission
+
+    this.#path = [solver]
+    parent !== solver && this.#populate(parent, solver)
+    this.#path.unshift(solver.domain)
   }
 
-  // TODO: Add i18n support
   get description () {
-    if (this.length === 0) {
-      const { type, name } = this.#solver,
-            { allows, resource, right } = this.#permission
+    return `DESCRIPTION`
+  }
 
-      return `${type} '${name}' is directly ${allows ? 'allowed' : 'denied'} Right '${right}' on Resource '${resource}' via Permission '${this.#permission.toString()}'.`
+  get path () {
+    return this.#path
+  }
+
+  #populate (target, candidate) {
+    console.log(`   TARGET: ${target.name}`)
+    console.log(`CANDIDATE: ${candidate.name}`)
+
+    if (target === candidate) {
+      console.log('CANDIDATE IS THE TARGET. ADD TO PATH.')
+      this.#path.unshift(candidate)
+
+      // if (candidate.roles.length > 0) {
+      //   return console.log('TRACE ROLES UP TO DOMAIN')
+      //   // Just add the first role of each one going up
+      // }
     }
 
-    return 'ROLE BUD'
+    const { name } = target
+
+    if (candidate.hasDirectRole(name)) {
+      console.log('CANDIDATE HAS DIRECT ROLE MATCHING TARGET. POPULATE.')
+      return this.#populate(target, candidate.domain.getRole(name))
+    }
+
+    if (!candidate.hasIndirectRole(name)) return console.log('CANDIDATE DOES NOT HAVE INDIRECT ROLE MATCHING TARGET.')
+
+    console.log('CANDIDATE HAS INDIRECT ROLE MATCHING TARGET. CHECK ROLES')
+
+    for (let role of candidate.roles) {
+      role = candidate.domain.getRole(role)
+
+      if (role.hasRole(name)) {
+        this.#path.unshift(role)
+        return this.#populate(target, role)
+      }
+    }
+
+    // console.log('CANDIDATE DOES NOT HAVE DIRECT ROLE MATCHING TARGET.')
+
+    // if (candidate.hasIndirectRole(name)) {
+    //   console.log('CANDIDATE HAS INDIRECT ROLE MATCHING TARGET.')
+    //   return this.#populate(target, candidate.domain.getRole(name))
+    // }
+
+    // if (!candidate.hasIndirectRole(name)) {
+    //   return
+    // }
+
+    // for (let role of candidate.roles) {
+    //   role = candidate.domain.getRole(role)
+
+    //   if (role.hasDirectRole(name)) return this.#path.push(role)
+    //   if (role.hasIndirectRole(name)) return this.#populate(target, role)
+    // }
+
+    // this.#path.push(candidate)
+
+    // if (target === candidate) return this.#path.push(target)
+    // if (candidate.hasDirectRole(name)) return this.#path.push(target, candidate)
+
+    // for (let role of candidate.roles) {
+    //   role = candidate.domain.getRole(role)
+    //   if (role.hasDirectRole(name)) return this.#path.push(role, candidate)
+      
+    //   if (role.hasIndirectRole(name)) {
+    //     // this.#path.push(role)
+    //     return this.#populate(target, role)
+    //   }
+    //   console.log(role.hasDirectRole(name))
+    //   console.log(role.hasIndirectRole(name))
+    //   console.log('---');
+
+    //   // if (role.hasIndirectRole(name)) {
+    //   //   this.#path.push(role)
+    //   //   console.log(role.parent);
+    //   //   // this.#populate(target, role.parent)
+    //   // }
+    //   // console.log(role.parent);
+    //   // 
+    //   // 
+    //   // if (role.hasIndirectRole(name)) return this.#populate(target, role)
+    //   // console.log('YO');
+    // }
   }
 }
+
+// export default class Lineage extends Array {
+//   #permission
+//   #solver
+  
+//   constructor (solver, permission, path = []) {
+//     super(...path)
+//     this.#permission = permission
+//     this.#solver = solver
+//   }
+
+//   // TODO: Add i18n support
+//   get description () {
+//     if (this.length === 0) {
+//       const { type, name } = this.#solver,
+//             { allows, resource, right } = this.#permission
+
+//       return `${type} '${name}' is directly ${allows ? 'allowed' : 'denied'} Right '${right}' on Resource '${resource}' via Permission '${this.#permission.toString()}'.`
+//     }
+
+//     return 'ROLE BUD'
+//   }
+
+//   get permission () {
+//     return this.#permission
+//   }
+// }
 
 // function getEntry ({ name, type }, permission) {
 //   // const entry = { name, type }

@@ -3,7 +3,7 @@ import { inspect } from 'util'
 export function getTrumpingPermission (...permissions) {
   return permissions.reduce((trump, permission) => {
     return trump 
-      ? permission.weight > trump?.weight ? permission : trump
+      ? permission?.weight > trump?.weight ? permission : trump
       : permission
   }, null)
 }
