@@ -73,3 +73,19 @@ const domain = new Domain({
 ```
 
 This means any user who wants to be granted rights on 'My Resource' must also have 'view', 'manage' and either 'read' or 'write' access on 'Other Resource'.
+
+## TTLs and NotBefores
+
+Allow TTL to auto-expire on Solvers, and NotBefores to delay activation of Solvers.
+
+```js
+const domain = new Domain({
+  name: 'My Domain',
+
+  users: [{
+    name: 'User',
+    activates: <DateTime|numMilliseconds>, // notBefore
+    expires: <DateTime|numMilliseconds> // notAfter
+  }]
+})
+```

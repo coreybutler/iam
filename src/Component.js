@@ -4,15 +4,15 @@ export default class Component extends EventEmitter {
   #domain
   #parent
   #type
-  #timer
-  #ttl = null
+  // #timer
+  // #ttl = null
 
-  constructor ({ type, domain, parent, ttl, internalEvents }) {
+  constructor ({ type, domain, parent,/* ttl,*/ internalEvents }) {
     super(internalEvents)
     this.#domain = domain
     this.#parent = parent
     this.#type = type
-    ttl && (this.TTL = ttl)
+    // ttl && (this.TTL = ttl)
   }
 
   get domain () {
@@ -27,60 +27,60 @@ export default class Component extends EventEmitter {
     return this.#type
   }
 
-  /**
-   * @getter ttl
-   * @alias of this.TTL
-   */
-  get ttl () {
-    return this.#ttl
-  }
+  // /**
+  //  * @getter ttl
+  //  * @alias of this.TTL
+  //  */
+  // get ttl () {
+  //   return this.#ttl
+  // }
 
-  get TTL () {
-    return this.#ttl
-  }
+  // get TTL () {
+  //   return this.#ttl
+  // }
 
-  /**
-   * @setter ttl
-   * @alias of this.TTL
-   */
-  set ttl (val) {
-    this.#setTTL(val)
-  }
+  // /**
+  //  * @setter ttl
+  //  * @alias of this.TTL
+  //  */
+  // set ttl (val) {
+  //   this.#setTTL(val)
+  // }
 
-  set TTL (val) {
-    this.#setTTL(val)
-  }
+  // set TTL (val) {
+  //   this.#setTTL(val)
+  // }
 
-  destroy () {
-    console.log('DESTROY', this)
-    // Fire destroy event
-  }
+  // destroy () {
+  //   console.log('DESTROY', this)
+  //   // Fire destroy event
+  // }
 
-  #setTimer (ttl) {
-    this.#timer = setTimeout(async () => {
-      let renewal
+  // #setTimer (ttl) {
+  //   this.#timer = setTimeout(() => {
+  //     let renewal
 
-      await this.emit('expire', {
-        renew: ttl => renewal = ttl
-      })
+  //     this.emit('ttl.expire', {
+  //       renew: ttl => renewal = ttl
+  //     })
 
-      renewal ? this.TTL = renewal : this.destroy()
-    }, ttl)
-  }
+  //     renewal ? this.TTL = renewal : this.destroy()
+  //   }, ttl)
+  // }
 
-  #setTTL (val) {
-    if (val instanceof Date) val = val.getTime() - Date.now()
+  // #setTTL (val) {
+  //   if (val instanceof Date) val = val.getTime() - Date.now()
 
-    const previous = this.#ttl
+  //   const previous = this.#ttl
 
-    if (isNaN(val) || val <= 0) {
-      clearTimeout(this.#timer)
-      this.#ttl = null
-    } else {
-      this.#setTimer(val)
-      this.#ttl = val
-    }
+  //   if (isNaN(val) || val <= 0) {
+  //     clearTimeout(this.#timer)
+  //     this.#ttl = null
+  //   } else {
+  //     this.#setTimer(val)
+  //     this.#ttl = val
+  //   }
 
-    this.emit('ttl.change', { previous, current: this.#ttl })
-  }
+  //   this.emit('ttl.change', { previous, current: this.#ttl })
+  // }
 }

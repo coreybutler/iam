@@ -31,9 +31,9 @@ const domain = new Domain({
     name: 'Basic User',
     roles: ['Admin'],
 
-    // permissions: {
-    //   'Licensing Screen': ['read']
-    // }
+    permissions: {
+      'Licensing Screen': ['read']
+    }
   }, {
     name: 'Basic User 2',
     roles: ['Basic User'],
@@ -43,7 +43,11 @@ const domain = new Domain({
     // }
   }, {
     name: 'Basic User 3',
-    roles: ['Basic User 2']
+    roles: ['Basic User 2'],
+
+    metadata: {
+
+    }
   }, {
     name: 'Basic User 4',
     roles: ['Basic User 3']
@@ -52,10 +56,16 @@ const domain = new Domain({
   users: [{
     name: 'Graham',
     roles: ['Basic User 4'],
+
+    ttl: 4000,
     
     // permissions: {
     //   'Licensing Screen': ['read']
-    // }
+    // },
+
+    metadata: {
+      dob: ''
+    }
   }]
 })
 
@@ -63,7 +73,16 @@ const user = domain.getUser('Graham'),
       acl = user.getACL('Licensing Screen'),
       lineage = acl.getLineage('read')
 
-console.log(lineage?.path.map(e => e.data) ?? null);
+// let renewed = false
+
+// user.on('ttl.expire', ({ renew }) => {
+//   if (!renewed) {
+//     renewed = true
+//     renew()
+//   }
+// })
+
+console.log(lineage?.description)
 // lineage.forEach(e => console.log(e.data))
 
 // printJSON(domain.toString())
