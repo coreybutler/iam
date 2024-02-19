@@ -311,39 +311,3 @@ export default class Solver extends Entity {
     return throwError(this.domain, `Cannot ${action} Right "${permission}" on unknown Resource "${resource}".`)
   }
 }
-
-// getLineage (resource, right) {
-  //   let path = [],
-  //       permission = getTrumpingPermission(...this.#getDirectPermissions({ resource, right }))
-        
-  //   if (!permission) {
-  //     permission = getTrumpingPermission(...this.#getInheritedPermissions({ resource, right }))
-      
-  //     if (permission) {
-  //       const { parent } = permission
-
-  //       path.push(parent.toString())
-
-  //       if (!this.#roles.has(parent.name)) {
-  //         const { name } = parent
-
-  //         for (let role of [...this.#roles]) {
-  //           role = this.domain.getRole(role)
-
-  //           if (role.hasDirectRole(name)) {
-  //             path.push(role.toString())
-  //             break
-  //           } else if (role.hasInheritedRole(name)) {
-  //             console.log('DO RECURSION')
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   return permission ? Object.freeze(new Lineage(this, permission, path)) : null
-  // }
-
-  // #throwUnsetRightError (right, resource, message) {
-  //   return throwError(this.domain, `Cannot unset Right "${right}" from ${this.parent.type} "${this.parent.name}" on Resource "${resource}"; ${message}`)
-  // }

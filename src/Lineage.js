@@ -16,7 +16,7 @@ export default class Lineage {
     const { parent } = this.#permission
 
     return this.#path.slice(1).reverse().reduce((description, entry, i) => {
-      return `${description} ${entry.type} '${entry.name}'${entry === parent ? `, which has permission '${this.#permission.toString()}'.` : `${i === 0 ? ' is assigned' : ', which inherits'}`}`
+      return `${description} ${entry.type} '${entry.name}'${entry === parent ? `, which has permission '${this.#permission.toString()}' on Resource '${this.resource}'.` : `${i === 0 ? ' is assigned' : ', which inherits'}`}`
     }, ``)
   }
 
@@ -26,6 +26,10 @@ export default class Lineage {
 
   get permission () {
     return this.#permission
+  }
+
+  get resource () {
+    return this.#permission.resource
   }
 
   #populate (target, candidate) {
