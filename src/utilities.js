@@ -1,4 +1,4 @@
-import { inspect } from 'util'
+// import { inspect } from 'util'
 
 export function getTrumpingPermission (...permissions) {
   return permissions.reduce((trump, permission) => {
@@ -14,9 +14,9 @@ export function list(...entries) {
   }, '')
 }
 
-export function printJSON (json, pretty = true) {
-  console.log(inspect(pretty ? JSON.parse(json, null, 2) : json, { depth: null }))
-}
+// export function printJSON (json, pretty = true) {
+//   console.log(inspect(pretty ? JSON.parse(json, null, 2) : json, { depth: null }))
+// }
 
 export function throwError (domain, message) {
   throw new Error(getMessage(...arguments))

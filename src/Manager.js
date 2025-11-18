@@ -44,7 +44,7 @@ export default class Manager extends Component {
       ? throwError(this.domain, `${this.#type} "${name}" already exists`)
       : prepend ? this.#map = new Map([[name, item], ...this.#map]) : this.#map.set(name, item)
 
-    this.parent.emit(ACCESS_KEY, `${this.#namespace}.add`)
+    this.parent.emit(ACCESS_KEY, `${this.#namespace}.add`, item)
     return item
   }
 
